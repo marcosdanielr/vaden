@@ -1,3 +1,5 @@
+part of 'annotation.dart';
+
 class Query {
   final String name;
   const Query(this.name);

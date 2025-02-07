@@ -1,4 +1,4 @@
-import 'package:vaden/vaden.dart';
+import 'package:vaden_gen/vaden_gen.dart';
 
 void main() {
   var awesome = Awesome();

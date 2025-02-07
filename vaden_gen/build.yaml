@@ -1,0 +1,9 @@
+builders:
+  aggregating_vaden_builder:
+    import: "package:vaden_gen/src/aggregating_vaden_builder.dart"
+    builder_factories: ["aggregatingVadenBuilder"]
+    build_extensions: { "$package$": ["lib/vaden_application.dart"] }
+    auto_apply: root_package
+    build_to: source
+    
+

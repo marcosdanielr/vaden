@@ -4,7 +4,6 @@ import 'package:vaden/vaden.dart';
 
 import 'repository_example.dart';
 
-@useGuard(GuardJwt)
 @Controller('/examples')
 class ControllerExamples {
   final ServiceExample serviceExample;
@@ -16,7 +15,6 @@ class ControllerExamples {
     return Response.ok('Hello, World!');
   }
 
-  @useGuard(GuardJwt)
   @Get('/goodbye') // /goodbye?username=foo&password=bar
   FutureOr<Response> goodbye(
     @Query('username') String username,
