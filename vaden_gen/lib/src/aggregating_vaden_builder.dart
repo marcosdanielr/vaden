@@ -24,7 +24,6 @@ class AggregatingVadenBuilder implements Builder {
 
   @override
   Future<void> build(BuildStep buildStep) async {
-    log.info('Procurando assets em lib/');
     final aggregatedBuffer = StringBuffer();
     final importsBuffer = StringBuffer();
     importsBuffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
@@ -33,17 +32,31 @@ class AggregatingVadenBuilder implements Builder {
     importsBuffer.writeln("import 'package:vaden/vaden.dart';");
     importsBuffer.writeln();
 
-    aggregatedBuffer.writeln('abstract class VadenApplication {');
+    aggregatedBuffer.writeln('class VadenApplication {');
     aggregatedBuffer.writeln();
-    aggregatedBuffer.writeln('  static Future<Response> run(Request request) async {');
+    aggregatedBuffer.writeln('  var _router = Router();');
+    aggregatedBuffer.writeln('  var _injector = AutoInjector();');
+    aggregatedBuffer.writeln();
+    aggregatedBuffer.writeln('  VadenApplication();');
+    aggregatedBuffer.writeln();
+    aggregatedBuffer.writeln('  void _dispose(dynamic instance) {');
+    aggregatedBuffer.writeln('    if (instance is Disposable) {');
+    aggregatedBuffer.writeln('      instance.dispose();');
+    aggregatedBuffer.writeln('    }');
+    aggregatedBuffer.writeln('  }');
+    aggregatedBuffer.writeln();
+    aggregatedBuffer.writeln('  Future<Response> run(Request request) async {');
+    aggregatedBuffer.writeln('    return _router(request);');
+    aggregatedBuffer.writeln('  }');
+    aggregatedBuffer.writeln();
+    aggregatedBuffer.writeln('  Future<void> setup() async {');
     aggregatedBuffer.writeln('    final router = Router();');
+    aggregatedBuffer.writeln('    _injector.dispose(_dispose);');
     aggregatedBuffer.writeln('    final injector = AutoInjector();');
     aggregatedBuffer.writeln();
 
     // Define um glob para encontrar todos os arquivos Dart em lib/
     final dartFiles = await buildStep.findAssets(Glob('lib/**/*.dart')).toList();
-
-    log.info('TOTAL: ${dartFiles.length}');
 
     // Cria uma instância do seu generator que processa Controllers (por exemplo, VadenGenerator)
     final generator = VadenGenerator();
@@ -64,7 +77,6 @@ class AggregatingVadenBuilder implements Builder {
     }
 
     aggregatedBuffer.writeln('    injector.commit();');
-    aggregatedBuffer.writeln('    return router(request);');
     aggregatedBuffer.writeln('  }');
 
     aggregatedBuffer.writeln('}');

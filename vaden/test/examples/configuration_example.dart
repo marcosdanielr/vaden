@@ -2,7 +2,7 @@ import 'package:vaden/vaden.dart';
 
 @Configuration()
 class ExampleConfiguration {
-  @Provider()
+  @Bind()
   MyEnv getProjectEnv() {
     return MyEnv(
       String.fromEnvironment('URL_API'),

@@ -4,6 +4,6 @@ class Configuration extends Component {
   const Configuration();
 }
 
-class Provider {
-  const Provider();
+class Bind {
+  const Bind();
 }

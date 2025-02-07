@@ -6,10 +6,26 @@ import 'package:vaden/vaden.dart';
 import 'package:example/src/auth/auth_controller.dart';
 import 'package:example/src/product/product_controller.dart';
 
-abstract class VadenApplication {
+class VadenApplication {
 
-  static Future<Response> run(Request request) async {
+  var _router = Router();
+  var _injector = AutoInjector();
+
+  VadenApplication();
+
+  void _dispose(dynamic instance) {
+    if (instance is Disposable) {
+      instance.dispose();
+    }
+  }
+
+  Future<Response> run(Request request) async {
+    return _router(request);
+  }
+
+  Future<void> setup() async {
     final router = Router();
+    _injector.dispose(_dispose);
     final injector = AutoInjector();
 
       injector.add(AuthController.new);
@@ -33,7 +49,6 @@ abstract class VadenApplication {
       router.mount('/ProductController', routerProductController);
 
     injector.commit();
-    return router(request);
   }
 }
 
