@@ -24,3 +24,13 @@ class Patch {
   final String path;
   const Patch(this.path);
 }
+
+class Head {
+  final String path;
+  const Head(this.path);
+}
+
+class Options {
+  final String path;
+  const Options(this.path);
+}

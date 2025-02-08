@@ -1,6 +1,6 @@
 import 'package:vaden/vaden.dart';
 
-@Injectable()
+@Service()
 class ServiceExample {
   void doSomething() {
     print('Doing something');

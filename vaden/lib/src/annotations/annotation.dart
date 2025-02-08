@@ -1,9 +1,48 @@
-import 'package:vaden/vaden.dart';
-
-part 'component.dart';
-part 'configuration.dart';
-part 'controller.dart';
-part 'injectable.dart';
-part 'middleware.dart';
-part 'request.dart';
 part 'rest.dart';
+
+class Component {
+  const Component();
+}
+
+class Service extends Component {
+  const Service();
+}
+
+class Repository extends Component {
+  const Repository();
+}
+
+class Configuration {
+  const Configuration();
+}
+
+class Bind {
+  const Bind();
+}
+
+class Controller extends Component {
+  final String path;
+
+  const Controller(this.path);
+}
+
+class UseMiddleware {
+  final List<Type> middlewares;
+  const UseMiddleware(this.middlewares);
+}
+
+class UseGuards {
+  final List<Type> guards;
+  const UseGuards(this.guards);
+}
+
+class Query {
+  final String name;
+  const Query(this.name);
+}
+
+class Param {
+  final String name;
+
+  const Param(this.name);
+}
