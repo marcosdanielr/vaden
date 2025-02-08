@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:glob/glob.dart';
@@ -47,6 +48,9 @@ class AggregatingVadenBuilder implements Builder {
   Future<void> build(BuildStep buildStep) async {
     final aggregatedBuffer = StringBuffer();
     final importsBuffer = StringBuffer();
+
+    final importSet = <String>{};
+
     importsBuffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     importsBuffer.writeln('// Aggregated Vaden application file');
     importsBuffer.writeln();
@@ -75,47 +79,51 @@ class AggregatingVadenBuilder implements Builder {
     aggregatedBuffer.writeln('    _injector.dispose(_dispose);');
     aggregatedBuffer.writeln();
 
-    final dartFiles = await buildStep.findAssets(Glob('lib/**/*.dart')).toList();
+    final body = await buildStep //
+        .findAssets(Glob('lib/**/*.dart'))
+        .asyncExpand((assetId) async* {
+      final library = await buildStep.resolver.libraryFor(assetId);
+      final reader = LibraryReader(library);
 
-    for (final assetId in dartFiles) {
-      try {
-        final library = await buildStep.resolver.libraryFor(assetId);
-        final reader = LibraryReader(library);
-
-        if (!libraryComponent(reader)) {
+      for (var classElement in reader.classes) {
+        if (componentChecker.hasAnnotationOfExact(classElement)) {
+          yield classElement;
           continue;
         }
 
-        final (import, body) = _componentSetup(reader);
-
-        if (import.isNotEmpty) {
-          importsBuffer.writeln(import);
+        for (final meta in classElement.metadata) {
+          final obj = meta.computeConstantValue();
+          if (obj == null) continue;
+          if (componentChecker.isAssignableFromType(obj.type!)) {
+            yield classElement;
+          }
         }
-
-        if (body.isNotEmpty) {
-          aggregatedBuffer.writeln(body);
-        }
-
-        final configurationBody = _configurationSetup(reader);
-
-        if (configurationBody.isNotEmpty) {
-          aggregatedBuffer.writeln(configurationBody);
-        }
-
-        final controllerBody = _controllerSetup(reader);
-
-        if (controllerBody.isNotEmpty) {
-          aggregatedBuffer.writeln(controllerBody);
-        }
-      } catch (e) {
-        log.severe('Erro processando $assetId: $e');
       }
-    }
+    }).map((classElement) {
+      final uri = classElement.librarySource.uri.toString();
+      importSet.add(uri);
+      return classElement;
+    }).map((classElement) {
+      final bodyBuffer = StringBuffer();
+      bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
+
+      if (configurationChecker.hasAnnotationOf(classElement)) {
+        bodyBuffer.writeln(_configurationSetup(classElement));
+      } else if (controllerChecker.hasAnnotationOf(classElement)) {
+        bodyBuffer.writeln(_controllerSetup(classElement));
+      }
+
+      return bodyBuffer.toString();
+    }).toList();
+
+    aggregatedBuffer.writeln(body.join('\n'));
 
     aggregatedBuffer.writeln('    _injector.commit();');
     aggregatedBuffer.writeln('  }');
 
     aggregatedBuffer.writeln('}');
+
+    importsBuffer.writeln(importSet.map((uri) => "import '$uri';").join('\n'));
 
     importsBuffer.writeln();
     importsBuffer.writeln(aggregatedBuffer.toString());
@@ -143,49 +151,33 @@ class AggregatingVadenBuilder implements Builder {
     return false;
   }
 
-  (String, String) _componentSetup(LibraryReader reader) {
-    final bodyBuffer = StringBuffer();
-    final importsBuffer = StringBuffer();
-
-    for (final classElement in reader.classes) {
-      log.info('Processing ${classElement.name}');
-      bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
-      final uri = classElement.librarySource.uri.toString();
-      importsBuffer.writeln("import '$uri';");
-    }
-
-    return (importsBuffer.toString(), bodyBuffer.toString());
-  }
-
-  String _configurationSetup(LibraryReader reader) {
+  String _configurationSetup(ClassElement classElement) {
     final bodyBuffer = StringBuffer();
 
-    for (final classElement in reader.classes) {
-      if (configurationChecker.hasAnnotationOf(classElement)) {
-        for (final method in classElement.methods) {
-          if (bindChecker.hasAnnotationOf(method)) {
-            final positionalParams = method.parameters.where((p) => !p.isNamed).map((p) => '_injector()').toList();
+    if (configurationChecker.hasAnnotationOf(classElement)) {
+      for (final method in classElement.methods) {
+        if (bindChecker.hasAnnotationOf(method)) {
+          final positionalParams = method.parameters.where((p) => !p.isNamed).map((p) => '_injector()').toList();
 
-            final namedParams = method.parameters.where((p) => p.isNamed && p.isRequiredNamed).map((p) => '${p.name}: _injector()').toList();
+          final namedParams = method.parameters.where((p) => p.isNamed && p.isRequiredNamed).map((p) => '${p.name}: _injector()').toList();
 
-            final List<String> paramsList = [];
-            if (positionalParams.isNotEmpty) {
-              paramsList.add(positionalParams.join(', '));
-            }
-            if (namedParams.isNotEmpty) {
-              paramsList.add(namedParams.join(', '));
-            }
-            final parameterResolution = paramsList.join(', ');
+          final List<String> paramsList = [];
+          if (positionalParams.isNotEmpty) {
+            paramsList.add(positionalParams.join(', '));
+          }
+          if (namedParams.isNotEmpty) {
+            paramsList.add(namedParams.join(', '));
+          }
+          final parameterResolution = paramsList.join(', ');
 
-            if (method.returnType.isDartAsyncFuture) {
-              bodyBuffer.writeln('    final _result_${classElement.name}_${method.name} = await ${classElement.name}().${method.name}($parameterResolution);');
-              bodyBuffer.writeln('    _injector.addSingleton(() => _result_${classElement.name}_${method.name});');
+          if (method.returnType.isDartAsyncFuture) {
+            bodyBuffer.writeln('    final _result_${classElement.name}_${method.name} = await ${classElement.name}().${method.name}($parameterResolution);');
+            bodyBuffer.writeln('    _injector.addSingleton(() => _result_${classElement.name}_${method.name});');
+          } else {
+            if (method.parameters.isNotEmpty) {
+              bodyBuffer.writeln('    _injector.addSingleton(() => ${classElement.name}().${method.name}($parameterResolution));');
             } else {
-              if (method.parameters.isNotEmpty) {
-                bodyBuffer.writeln('    _injector.addSingleton(() => ${classElement.name}().${method.name}($parameterResolution));');
-              } else {
-                bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}().${method.name});');
-              }
+              bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}().${method.name});');
             }
           }
         }
@@ -195,11 +187,8 @@ class AggregatingVadenBuilder implements Builder {
     return bodyBuffer.toString();
   }
 
-  String _controllerSetup(LibraryReader reader) {
+  String _controllerSetup(ClassElement classElement) {
     final bodyBuffer = StringBuffer();
-
-    final paramChecker = TypeChecker.fromRuntime(Param);
-    final queryChecker = TypeChecker.fromRuntime(Query);
 
     String wrapGuard(String guardTypeName) {
       return """
@@ -221,116 +210,114 @@ class AggregatingVadenBuilder implements Builder {
 }""";
     }
 
-    for (final classElement in reader.classes) {
-      final controllerAnn = controllerChecker.firstAnnotationOf(classElement);
-      if (controllerAnn == null) continue;
+    final controllerAnn = controllerChecker.firstAnnotationOf(classElement);
+    if (controllerAnn == null) return '';
 
-      final controllerPath = controllerAnn.getField('path')?.toStringValue() ?? '';
+    final controllerPath = controllerAnn.getField('path')?.toStringValue() ?? '';
 
-      final controllerName = classElement.name;
+    final controllerName = classElement.name;
 
-      final classGuards = useGuardsChecker.firstAnnotationOf(classElement);
-      final classMidds = useMiddlewareChecker.firstAnnotationOf(classElement);
+    final classGuards = useGuardsChecker.firstAnnotationOf(classElement);
+    final classMidds = useMiddlewareChecker.firstAnnotationOf(classElement);
 
-      final routerVar = "_router$controllerName";
-      bodyBuffer.writeln("final $routerVar = Router();");
+    final routerVar = "_router$controllerName";
+    bodyBuffer.writeln("final $routerVar = Router();");
 
-      for (final method in classElement.methods) {
-        String? routerMethod;
-        String? routePath;
+    for (final method in classElement.methods) {
+      String? routerMethod;
+      String? routePath;
 
-        for (final (checker, shelfMethod) in methodCheckers) {
-          final httpAnn = checker.firstAnnotationOf(method);
-          if (httpAnn != null) {
-            routerMethod = shelfMethod;
-            routePath = httpAnn.getField('path')?.toStringValue() ?? '';
-            break;
-          }
+      for (final (checker, shelfMethod) in methodCheckers) {
+        final httpAnn = checker.firstAnnotationOf(method);
+        if (httpAnn != null) {
+          routerMethod = shelfMethod;
+          routePath = httpAnn.getField('path')?.toStringValue() ?? '';
+          break;
         }
-
-        if (routerMethod == null) continue;
-
-        final pipelineVar = "_pipeline_${controllerName}_${method.name}";
-        bodyBuffer.writeln("var $pipelineVar = const Pipeline();");
-
-        if (classGuards != null) {
-          final guardList = classGuards.getField('guards')?.toListValue() ?? [];
-          for (final g in guardList) {
-            final guardTypeName = g.toTypeValue()?.getDisplayString();
-            if (guardTypeName != null) {
-              bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapGuard(guardTypeName)});");
-            }
-          }
-        }
-        if (classMidds != null) {
-          final middList = classMidds.getField('middlewares')?.toListValue() ?? [];
-          for (final m in middList) {
-            final middTypeName = m.toTypeValue()?.getDisplayString();
-            if (middTypeName != null) {
-              bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapMiddleware(middTypeName)});");
-            }
-          }
-        }
-
-        final methodGuards = useGuardsChecker.firstAnnotationOf(method);
-        final methodMidds = useMiddlewareChecker.firstAnnotationOf(method);
-
-        if (methodGuards != null) {
-          final guardList = methodGuards.getField('guards')?.toListValue() ?? [];
-          for (final g in guardList) {
-            final guardTypeName = g.toTypeValue()?.getDisplayString();
-            if (guardTypeName != null) {
-              bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapGuard(guardTypeName)});");
-            }
-          }
-        }
-        if (methodMidds != null) {
-          final middList = methodMidds.getField('middlewares')?.toListValue() ?? [];
-          for (final m in middList) {
-            final middTypeName = m.toTypeValue()?.getDisplayString();
-            if (middTypeName != null) {
-              bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapMiddleware(middTypeName)});");
-            }
-          }
-        }
-
-        final paramCodeList = <String>[];
-        for (final parameter in method.parameters) {
-          final pAnn = paramChecker.firstAnnotationOf(parameter);
-          final qAnn = queryChecker.firstAnnotationOf(parameter);
-
-          if (pAnn != null) {
-            final pname = pAnn.getField('name')?.toStringValue() ?? parameter.name;
-            paramCodeList.add("final ${parameter.name} = request.params['$pname']; // String?");
-          } else if (qAnn != null) {
-            final qname = qAnn.getField('name')?.toStringValue() ?? parameter.name;
-            paramCodeList.add("final ${parameter.name} = request.url.queryParameters['$qname']; // String?");
-          } else {
-            final paramType = parameter.type.getDisplayString();
-            if (paramType == 'Request' || paramType == 'Request?') {
-              if (parameter.name != 'request') {
-                paramCodeList.add("final ${parameter.name} = request;");
-              }
-            }
-          }
-        }
-
-        final handlerVar = "_handler_${controllerName}_${method.name}";
-        bodyBuffer.writeln("final $handlerVar = (Request request) async {");
-        for (final code in paramCodeList) {
-          bodyBuffer.writeln("  $code");
-        }
-        final callParams = method.parameters.map((p) => p.name).join(', ');
-        bodyBuffer.writeln("  final ctrl = _injector.get<$controllerName>();");
-        bodyBuffer.writeln("  final result = await ctrl.${method.name}($callParams);");
-        bodyBuffer.writeln("  return result;");
-        bodyBuffer.writeln("};");
-
-        bodyBuffer.writeln("$routerVar.$routerMethod('$routePath', $pipelineVar.addHandler($handlerVar));");
       }
 
-      bodyBuffer.writeln("_router.mount('$controllerPath', $routerVar);");
+      if (routerMethod == null) continue;
+
+      final pipelineVar = "_pipeline_${controllerName}_${method.name}";
+      bodyBuffer.writeln("var $pipelineVar = const Pipeline();");
+
+      if (classGuards != null) {
+        final guardList = classGuards.getField('guards')?.toListValue() ?? [];
+        for (final g in guardList) {
+          final guardTypeName = g.toTypeValue()?.getDisplayString();
+          if (guardTypeName != null) {
+            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapGuard(guardTypeName)});");
+          }
+        }
+      }
+      if (classMidds != null) {
+        final middList = classMidds.getField('middlewares')?.toListValue() ?? [];
+        for (final m in middList) {
+          final middTypeName = m.toTypeValue()?.getDisplayString();
+          if (middTypeName != null) {
+            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapMiddleware(middTypeName)});");
+          }
+        }
+      }
+
+      final methodGuards = useGuardsChecker.firstAnnotationOf(method);
+      final methodMidds = useMiddlewareChecker.firstAnnotationOf(method);
+
+      if (methodGuards != null) {
+        final guardList = methodGuards.getField('guards')?.toListValue() ?? [];
+        for (final g in guardList) {
+          final guardTypeName = g.toTypeValue()?.getDisplayString();
+          if (guardTypeName != null) {
+            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapGuard(guardTypeName)});");
+          }
+        }
+      }
+      if (methodMidds != null) {
+        final middList = methodMidds.getField('middlewares')?.toListValue() ?? [];
+        for (final m in middList) {
+          final middTypeName = m.toTypeValue()?.getDisplayString();
+          if (middTypeName != null) {
+            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapMiddleware(middTypeName)});");
+          }
+        }
+      }
+
+      final paramCodeList = <String>[];
+      for (final parameter in method.parameters) {
+        final pAnn = paramChecker.firstAnnotationOf(parameter);
+        final qAnn = queryChecker.firstAnnotationOf(parameter);
+
+        if (pAnn != null) {
+          final pname = pAnn.getField('name')?.toStringValue() ?? parameter.name;
+          paramCodeList.add("final ${parameter.name} = request.params['$pname']; // String?");
+        } else if (qAnn != null) {
+          final qname = qAnn.getField('name')?.toStringValue() ?? parameter.name;
+          paramCodeList.add("final ${parameter.name} = request.url.queryParameters['$qname']; // String?");
+        } else {
+          final paramType = parameter.type.getDisplayString();
+          if (paramType == 'Request' || paramType == 'Request?') {
+            if (parameter.name != 'request') {
+              paramCodeList.add("final ${parameter.name} = request;");
+            }
+          }
+        }
+      }
+
+      final handlerVar = "_handler_${controllerName}_${method.name}";
+      bodyBuffer.writeln("final $handlerVar = (Request request) async {");
+      for (final code in paramCodeList) {
+        bodyBuffer.writeln("  $code");
+      }
+      final callParams = method.parameters.map((p) => p.name).join(', ');
+      bodyBuffer.writeln("  final ctrl = _injector.get<$controllerName>();");
+      bodyBuffer.writeln("  final result = await ctrl.${method.name}($callParams);");
+      bodyBuffer.writeln("  return result;");
+      bodyBuffer.writeln("};");
+
+      bodyBuffer.writeln("$routerVar.$routerMethod('$routePath', $pipelineVar.addHandler($handlerVar));");
     }
+
+    bodyBuffer.writeln("_router.mount('$controllerPath', $routerVar);");
 
     return bodyBuffer.toString();
   }

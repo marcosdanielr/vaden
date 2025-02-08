@@ -4,12 +4,8 @@
 import 'package:vaden/vaden.dart';
 
 import 'package:example/src/auth_configuration.dart';
-import 'package:example/src/auth_configuration.dart';
-
 import 'package:example/src/auth_controller.dart';
-
 import 'package:example/src/auth_guard.dart';
-
 import 'package:example/src/auth_service.dart';
 
 class VadenApplication {
@@ -33,12 +29,9 @@ class VadenApplication {
     _injector.dispose(_dispose);
 
     _injector.addSingleton(AuthConfiguration.new);
-    _injector.addSingleton(MyEnv.new);
-
     _injector.addSingleton(AuthConfiguration().myEnv);
 
     _injector.addSingleton(AuthController.new);
-
     final _routerAuthController = Router();
     var _pipeline_AuthController_ping = const Pipeline();
     _pipeline_AuthController_ping = _pipeline_AuthController_ping.addMiddleware(
