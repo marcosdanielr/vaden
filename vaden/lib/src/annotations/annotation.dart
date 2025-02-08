@@ -12,7 +12,7 @@ class Repository extends Component {
   const Repository();
 }
 
-class Configuration {
+class Configuration extends Component {
   const Configuration();
 }
 

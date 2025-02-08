@@ -86,7 +86,7 @@ class AggregatingVadenBuilder implements Builder {
           continue;
         }
 
-        var (import, body) = _componentSetup(reader);
+        final (import, body) = _componentSetup(reader);
 
         if (import.isNotEmpty) {
           importsBuffer.writeln(import);
@@ -96,24 +96,16 @@ class AggregatingVadenBuilder implements Builder {
           aggregatedBuffer.writeln(body);
         }
 
-        (import, body) = _configurationSetup(reader);
+        final configurationBody = _configurationSetup(reader);
 
-        if (import.isNotEmpty) {
-          importsBuffer.writeln(import);
+        if (configurationBody.isNotEmpty) {
+          aggregatedBuffer.writeln(configurationBody);
         }
 
-        if (body.isNotEmpty) {
-          aggregatedBuffer.writeln(body);
-        }
+        final controllerBody = _controllerSetup(reader);
 
-        (import, body) = _controllerSetup(reader);
-
-        if (import.isNotEmpty) {
-          importsBuffer.writeln(import);
-        }
-
-        if (body.isNotEmpty) {
-          aggregatedBuffer.writeln(body);
+        if (controllerBody.isNotEmpty) {
+          aggregatedBuffer.writeln(controllerBody);
         }
       } catch (e) {
         log.severe('Erro processando $assetId: $e');
@@ -152,10 +144,11 @@ class AggregatingVadenBuilder implements Builder {
   }
 
   (String, String) _componentSetup(LibraryReader reader) {
-    final StringBuffer bodyBuffer = StringBuffer();
-    final StringBuffer importsBuffer = StringBuffer();
+    final bodyBuffer = StringBuffer();
+    final importsBuffer = StringBuffer();
 
     for (final classElement in reader.classes) {
+      log.info('Processing ${classElement.name}');
       bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
       final uri = classElement.librarySource.uri.toString();
       importsBuffer.writeln("import '$uri';");
@@ -164,18 +157,11 @@ class AggregatingVadenBuilder implements Builder {
     return (importsBuffer.toString(), bodyBuffer.toString());
   }
 
-  (String, String) _configurationSetup(LibraryReader reader) {
-    final StringBuffer bodyBuffer = StringBuffer();
-    final StringBuffer importsBuffer = StringBuffer();
-
-    final configurationChecker = TypeChecker.fromRuntime(Configuration);
-    final bindChecker = TypeChecker.fromRuntime(Bind);
+  String _configurationSetup(LibraryReader reader) {
+    final bodyBuffer = StringBuffer();
 
     for (final classElement in reader.classes) {
       if (configurationChecker.hasAnnotationOf(classElement)) {
-        final uri = classElement.librarySource.uri.toString();
-        importsBuffer.writeln("import '$uri';");
-
         for (final method in classElement.methods) {
           if (bindChecker.hasAnnotationOf(method)) {
             final positionalParams = method.parameters.where((p) => !p.isNamed).map((p) => '_injector()').toList();
@@ -206,11 +192,10 @@ class AggregatingVadenBuilder implements Builder {
       }
     }
 
-    return (importsBuffer.toString(), bodyBuffer.toString());
+    return bodyBuffer.toString();
   }
 
-  (String, String) _controllerSetup(LibraryReader reader) {
-    final importsBuffer = StringBuffer();
+  String _controllerSetup(LibraryReader reader) {
     final bodyBuffer = StringBuffer();
 
     final paramChecker = TypeChecker.fromRuntime(Param);
@@ -347,7 +332,7 @@ class AggregatingVadenBuilder implements Builder {
       bodyBuffer.writeln("_router.mount('$controllerPath', $routerVar);");
     }
 
-    return (importsBuffer.toString(), bodyBuffer.toString());
+    return bodyBuffer.toString();
   }
 }
 

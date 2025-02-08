@@ -6,6 +6,6 @@ import 'package:vaden/vaden.dart';
 class AuthGuard extends Guard {
   @override
   FutureOr<bool> canActivate(Request request) {
-    return true;
+    return false;
   }
 }
