@@ -4,11 +4,13 @@ version: 0.0.1
 # repository: https://github.com/my_org/my_repo
 
 environment:
-  sdk: ^3.6.2
+  sdk: ^3.6.0
+resolution: workspace
 
 # Add regular dependencies here.
 dependencies:
   args: ^2.5.0
+  vaden: 
 
 dev_dependencies:
   lints: ^5.0.0

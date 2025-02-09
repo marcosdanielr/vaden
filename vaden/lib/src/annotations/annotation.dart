@@ -26,6 +26,10 @@ class Controller extends Component {
   const Controller(this.path);
 }
 
+class DTO extends Component {
+  const DTO();
+}
+
 class UseMiddleware {
   final List<Type> middlewares;
   const UseMiddleware(this.middlewares);
@@ -45,4 +49,8 @@ class Param {
   final String name;
 
   const Param(this.name);
+}
+
+class Body {
+  const Body();
 }
