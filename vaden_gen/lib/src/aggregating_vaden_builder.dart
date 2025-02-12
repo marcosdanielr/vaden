@@ -27,6 +27,8 @@ class AggregatingVadenBuilder implements Builder {
   final controllerChecker = TypeChecker.fromRuntime(Controller);
   final configurationChecker = TypeChecker.fromRuntime(Configuration);
   final bindChecker = TypeChecker.fromRuntime(Bind);
+  final bodyChecker = TypeChecker.fromRuntime(Body);
+  final dtoChecker = TypeChecker.fromRuntime(DTO);
 
   final methodCheckers = <(TypeChecker, String)>[
     (TypeChecker.fromRuntime(Get), 'get'),
@@ -54,6 +56,7 @@ class AggregatingVadenBuilder implements Builder {
     importsBuffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     importsBuffer.writeln('// Aggregated Vaden application file');
     importsBuffer.writeln();
+    importsBuffer.writeln("import 'dart:convert';");
     importsBuffer.writeln("import 'package:vaden/vaden.dart';");
     importsBuffer.writeln();
 
@@ -105,7 +108,9 @@ class AggregatingVadenBuilder implements Builder {
       return classElement;
     }).map((classElement) {
       final bodyBuffer = StringBuffer();
-      bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
+      if (!dtoChecker.hasAnnotationOf(classElement) || !configurationChecker.hasAnnotationOf(classElement)) {
+        bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
+      }
 
       if (configurationChecker.hasAnnotationOf(classElement)) {
         bodyBuffer.writeln(_configurationSetup(classElement));
@@ -190,6 +195,7 @@ class AggregatingVadenBuilder implements Builder {
   String _controllerSetup(ClassElement classElement) {
     final bodyBuffer = StringBuffer();
 
+    // Helpers para envolver Guards e Middlewares
     String wrapGuard(String guardTypeName) {
       return """
 (Handler inner) {
@@ -220,13 +226,16 @@ class AggregatingVadenBuilder implements Builder {
     final classGuards = useGuardsChecker.firstAnnotationOf(classElement);
     final classMidds = useMiddlewareChecker.firstAnnotationOf(classElement);
 
+    // Cria o router dedicado para esse controller
     final routerVar = "_router$controllerName";
     bodyBuffer.writeln("final $routerVar = Router();");
 
+    // Processa cada método do controller
     for (final method in classElement.methods) {
       String? routerMethod;
       String? routePath;
 
+      // Verifica qual anotação HTTP (Get, Post, Put, Patch, Delete, Head, Options) está presente
       for (final (checker, shelfMethod) in methodCheckers) {
         final httpAnn = checker.firstAnnotationOf(method);
         if (httpAnn != null) {
@@ -235,12 +244,13 @@ class AggregatingVadenBuilder implements Builder {
           break;
         }
       }
-
       if (routerMethod == null) continue;
 
+      // Cria um pipeline para esse método
       final pipelineVar = "_pipeline_${controllerName}_${method.name}";
       bodyBuffer.writeln("var $pipelineVar = const Pipeline();");
 
+      // Aplica os Guards/Middlewares de nível de classe
       if (classGuards != null) {
         final guardList = classGuards.getField('guards')?.toListValue() ?? [];
         for (final g in guardList) {
@@ -260,9 +270,9 @@ class AggregatingVadenBuilder implements Builder {
         }
       }
 
+      // Aplica os Guards/Middlewares de nível de método
       final methodGuards = useGuardsChecker.firstAnnotationOf(method);
       final methodMidds = useMiddlewareChecker.firstAnnotationOf(method);
-
       if (methodGuards != null) {
         final guardList = methodGuards.getField('guards')?.toListValue() ?? [];
         for (final g in guardList) {
@@ -282,16 +292,36 @@ class AggregatingVadenBuilder implements Builder {
         }
       }
 
+      // Processa os parâmetros do método
       final paramCodeList = <String>[];
       for (final parameter in method.parameters) {
-        final pAnn = paramChecker.firstAnnotationOf(parameter);
-        final qAnn = queryChecker.firstAnnotationOf(parameter);
+        // Se o parâmetro estiver anotado com @Body(), trata como DTO
+        if (bodyChecker.hasAnnotationOf(parameter)) {
+          // Obtém o tipo (por exemplo, Credentials)
+          final typeName = parameter.type.getDisplayString();
+          paramCodeList.add("""
+final _bodyString = await request.readAsString();
+final _json = jsonDecode(_bodyString) as Map<String, dynamic>;
+final ${parameter.name} = $typeName.fromJson(_json);
+if (${parameter.name} is Validator<$typeName>) {
+  final _validator = ${parameter.name}.validate(ValidatorBuilder<$typeName>());
+  final _resultValidator = _validator.validate(credentials);
+  if (!_resultValidator.isValid) {
+    return Response(400, body: jsonEncode(_resultValidator.exceptionToJson()));
+  }
+}
+""");
+        } else if (paramChecker.hasAnnotationOf(parameter)) {
+          final pname = paramChecker.firstAnnotationOf(parameter)?.getField('name')?.toStringValue() ?? parameter.name;
+          paramCodeList.add("""
+  if (request.params['$pname'] == null) {
+    return Response(400, body: jsonEncode({'error': 'Invalid parameter ($pname)'}));
+  }
+  final ${parameter.name} = request.params['$pname']!;
 
-        if (pAnn != null) {
-          final pname = pAnn.getField('name')?.toStringValue() ?? parameter.name;
-          paramCodeList.add("final ${parameter.name} = request.params['$pname']; // String?");
-        } else if (qAnn != null) {
-          final qname = qAnn.getField('name')?.toStringValue() ?? parameter.name;
+""");
+        } else if (queryChecker.hasAnnotationOf(parameter)) {
+          final qname = queryChecker.firstAnnotationOf(parameter)?.getField('name')?.toStringValue() ?? parameter.name;
           paramCodeList.add("final ${parameter.name} = request.url.queryParameters['$qname']; // String?");
         } else {
           final paramType = parameter.type.getDisplayString();
@@ -306,6 +336,7 @@ class AggregatingVadenBuilder implements Builder {
       final handlerVar = "_handler_${controllerName}_${method.name}";
       bodyBuffer.writeln("final $handlerVar = (Request request) async {");
       for (final code in paramCodeList) {
+        // Adiciona o código gerado para cada parâmetro
         bodyBuffer.writeln("  $code");
       }
       final callParams = method.parameters.map((p) => p.name).join(', ');
@@ -317,6 +348,7 @@ class AggregatingVadenBuilder implements Builder {
       bodyBuffer.writeln("$routerVar.$routerMethod('$routePath', $pipelineVar.addHandler($handlerVar));");
     }
 
+    // Concatena o router do controller com o router global
     bodyBuffer.writeln("_router.mount('$controllerPath', $routerVar);");
 
     return bodyBuffer.toString();
