@@ -12,4 +12,4 @@ export 'package:shelf_router/shelf_router.dart';
 export 'src/annotations/annotation.dart';
 export 'src/types/disposable.dart';
 export 'src/types/types.dart';
-export 'src/vaden_base.dart';
+export 'src/utils/app_configuration.dart';

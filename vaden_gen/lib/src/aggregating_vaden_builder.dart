@@ -80,6 +80,7 @@ class AggregatingVadenBuilder implements Builder {
     aggregatedBuffer.writeln('  Future<void> setup() async {');
     aggregatedBuffer.writeln('    _router = Router();');
     aggregatedBuffer.writeln('    _injector.dispose(_dispose);');
+    aggregatedBuffer.writeln('');
     aggregatedBuffer.writeln();
 
     final body = await buildStep //

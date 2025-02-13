@@ -8,3 +8,4 @@ workspace:
   - vaden_cli
   - vaden_gen
   - packages/anaki_orm
+

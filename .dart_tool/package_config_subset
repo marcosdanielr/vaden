@@ -136,8 +136,8 @@ file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/logging-1.3.0/
 file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/logging-1.3.0/lib/
 lucid_validation
 3.0
-file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/lucid_validation-1.2.4/
-file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/lucid_validation-1.2.4/lib/
+file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/lucid_validation-1.2.5/
+file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/lucid_validation-1.2.5/lib/
 matcher
 3.4
 file:///C:/Users/jacob/.puro/shared/pub_cache/hosted/pub.dev/matcher-0.12.17/
@@ -290,6 +290,10 @@ vaden_workspace
 3.6
 file:///C:/Users/jacob/Projects/vaden/
 file:///C:/Users/jacob/Projects/vaden/lib/
+anaki_orm
+3.6
+file:///C:/Users/jacob/Projects/vaden/packages/anaki_orm/
+file:///C:/Users/jacob/Projects/vaden/packages/anaki_orm/lib/
 vaden
 3.6
 file:///C:/Users/jacob/Projects/vaden/vaden/
