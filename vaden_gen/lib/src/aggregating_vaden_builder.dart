@@ -55,33 +55,36 @@ class AggregatingVadenBuilder implements Builder {
 
     importsBuffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     importsBuffer.writeln('// Aggregated Vaden application file');
+    importsBuffer.writeln('// ignore_for_file: prefer_function_declarations_over_variables');
     importsBuffer.writeln();
     importsBuffer.writeln("import 'dart:convert';");
+    importsBuffer.writeln("import 'dart:io';");
     importsBuffer.writeln("import 'package:vaden/vaden.dart';");
     importsBuffer.writeln();
 
     aggregatedBuffer.writeln('class VadenApplication {');
     aggregatedBuffer.writeln();
-    aggregatedBuffer.writeln('  var _router = Router();');
-    aggregatedBuffer.writeln('  var _injector = AutoInjector();');
+    aggregatedBuffer.writeln('  final _router = Router();');
+    aggregatedBuffer.writeln('  final _injector = AutoInjector();');
     aggregatedBuffer.writeln();
     aggregatedBuffer.writeln('  VadenApplication();');
     aggregatedBuffer.writeln();
-    aggregatedBuffer.writeln('  void _dispose(dynamic instance) {');
-    aggregatedBuffer.writeln('    if (instance is Disposable) {');
-    aggregatedBuffer.writeln('      instance.dispose();');
-    aggregatedBuffer.writeln('    }');
-    aggregatedBuffer.writeln('  }');
-    aggregatedBuffer.writeln();
-    aggregatedBuffer.writeln('  Future<Response> run(Request request) async {');
-    aggregatedBuffer.writeln('    return _router(request);');
-    aggregatedBuffer.writeln('  }');
+    aggregatedBuffer.writeln('''
+  Future<HttpServer> run() async {
+    final pipeline = _injector.get<Pipeline>();
+    final handle = pipeline.addHandler(_router.call);
+
+    final settings = _injector.get<ApplicationSettings>();
+    final port = settings['server']['port'] ?? 8080;
+    final host = settings['server']['host'] ?? '0.0.0.0';
+
+    final server = await serve(handle, host, port);
+
+    return server;
+  }
+''');
     aggregatedBuffer.writeln();
     aggregatedBuffer.writeln('  Future<void> setup() async {');
-    aggregatedBuffer.writeln('    _router = Router();');
-    aggregatedBuffer.writeln('    _injector.dispose(_dispose);');
-    aggregatedBuffer.writeln('');
-    aggregatedBuffer.writeln();
 
     final body = await buildStep //
         .findAssets(Glob('lib/**/*.dart'))
@@ -109,7 +112,7 @@ class AggregatingVadenBuilder implements Builder {
       return classElement;
     }).map((classElement) {
       final bodyBuffer = StringBuffer();
-      if (!dtoChecker.hasAnnotationOf(classElement) || !configurationChecker.hasAnnotationOf(classElement)) {
+      if (!dtoChecker.hasAnnotationOf(classElement) && !configurationChecker.hasAnnotationOf(classElement)) {
         bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
       }
 
@@ -160,37 +163,26 @@ class AggregatingVadenBuilder implements Builder {
   String _configurationSetup(ClassElement classElement) {
     final bodyBuffer = StringBuffer();
 
-    if (configurationChecker.hasAnnotationOf(classElement)) {
-      for (final method in classElement.methods) {
-        if (bindChecker.hasAnnotationOf(method)) {
-          final positionalParams = method.parameters.where((p) => !p.isNamed).map((p) => '_injector()').toList();
+    final instanceName = 'configuration${classElement.name}';
 
-          final namedParams = method.parameters.where((p) => p.isNamed && p.isRequiredNamed).map((p) => '${p.name}: _injector()').toList();
-
-          final List<String> paramsList = [];
-          if (positionalParams.isNotEmpty) {
-            paramsList.add(positionalParams.join(', '));
-          }
-          if (namedParams.isNotEmpty) {
-            paramsList.add(namedParams.join(', '));
-          }
-          final parameterResolution = paramsList.join(', ');
-
-          if (method.returnType.isDartAsyncFuture) {
-            bodyBuffer.writeln('    final _result_${classElement.name}_${method.name} = await ${classElement.name}().${method.name}($parameterResolution);');
-            bodyBuffer.writeln('    _injector.addSingleton(() => _result_${classElement.name}_${method.name});');
-          } else {
-            if (method.parameters.isNotEmpty) {
-              bodyBuffer.writeln('    _injector.addSingleton(() => ${classElement.name}().${method.name}($parameterResolution));');
-            } else {
-              bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}().${method.name});');
-            }
-          }
+    for (final method in classElement.methods) {
+      if (bindChecker.hasAnnotationOf(method)) {
+        if (method.returnType.isDartAsyncFuture) {
+          log.severe('${classElement.name}.${method.name} cannot return a Future');
+        } else {
+          bodyBuffer.writeln('    _injector.addSingleton($instanceName.${method.name});');
         }
       }
     }
 
-    return bodyBuffer.toString();
+    if (bodyBuffer.isNotEmpty) {
+      return '''final $instanceName = ${classElement.name}();
+
+${bodyBuffer.toString()}
+''';
+    }
+
+    return '';
   }
 
   String _controllerSetup(ClassElement classElement) {
@@ -227,16 +219,13 @@ class AggregatingVadenBuilder implements Builder {
     final classGuards = useGuardsChecker.firstAnnotationOf(classElement);
     final classMidds = useMiddlewareChecker.firstAnnotationOf(classElement);
 
-    // Cria o router dedicado para esse controller
-    final routerVar = "_router$controllerName";
+    final routerVar = "router$controllerName";
     bodyBuffer.writeln("final $routerVar = Router();");
 
-    // Processa cada método do controller
     for (final method in classElement.methods) {
       String? routerMethod;
       String? routePath;
 
-      // Verifica qual anotação HTTP (Get, Post, Put, Patch, Delete, Head, Options) está presente
       for (final (checker, shelfMethod) in methodCheckers) {
         final httpAnn = checker.firstAnnotationOf(method);
         if (httpAnn != null) {
@@ -247,11 +236,9 @@ class AggregatingVadenBuilder implements Builder {
       }
       if (routerMethod == null) continue;
 
-      // Cria um pipeline para esse método
-      final pipelineVar = "_pipeline_${controllerName}_${method.name}";
+      final pipelineVar = "pipeline$controllerName${method.name}";
       bodyBuffer.writeln("var $pipelineVar = const Pipeline();");
 
-      // Aplica os Guards/Middlewares de nível de classe
       if (classGuards != null) {
         final guardList = classGuards.getField('guards')?.toListValue() ?? [];
         for (final g in guardList) {
@@ -271,7 +258,6 @@ class AggregatingVadenBuilder implements Builder {
         }
       }
 
-      // Aplica os Guards/Middlewares de nível de método
       final methodGuards = useGuardsChecker.firstAnnotationOf(method);
       final methodMidds = useMiddlewareChecker.firstAnnotationOf(method);
       if (methodGuards != null) {
@@ -293,22 +279,19 @@ class AggregatingVadenBuilder implements Builder {
         }
       }
 
-      // Processa os parâmetros do método
       final paramCodeList = <String>[];
       for (final parameter in method.parameters) {
-        // Se o parâmetro estiver anotado com @Body(), trata como DTO
         if (bodyChecker.hasAnnotationOf(parameter)) {
-          // Obtém o tipo (por exemplo, Credentials)
           final typeName = parameter.type.getDisplayString();
           paramCodeList.add("""
-final _bodyString = await request.readAsString();
-final _json = jsonDecode(_bodyString) as Map<String, dynamic>;
-final ${parameter.name} = $typeName.fromJson(_json);
+final bodyString = await request.readAsString();
+final json = jsonDecode(bodyString) as Map<String, dynamic>;
+final ${parameter.name} = $typeName.fromJson(json) as dynamic;
 if (${parameter.name} is Validator<$typeName>) {
-  final _validator = ${parameter.name}.validate(ValidatorBuilder<$typeName>());
-  final _resultValidator = _validator.validate(credentials);
-  if (!_resultValidator.isValid) {
-    return Response(400, body: jsonEncode(_resultValidator.exceptionToJson()));
+  final validator = ${parameter.name}.validate(ValidatorBuilder<$typeName>());
+  final resultValidator = validator.validate(credentials  as $typeName);
+  if (!resultValidator.isValid) {
+    return Response(400, body: jsonEncode(resultValidator.exceptionToJson()));
   }
 }
 """);
@@ -334,7 +317,7 @@ if (${parameter.name} is Validator<$typeName>) {
         }
       }
 
-      final handlerVar = "_handler_${controllerName}_${method.name}";
+      final handlerVar = "handler$controllerName${method.name}";
       bodyBuffer.writeln("final $handlerVar = (Request request) async {");
       for (final code in paramCodeList) {
         // Adiciona o código gerado para cada parâmetro
@@ -350,7 +333,7 @@ if (${parameter.name} is Validator<$typeName>) {
     }
 
     // Concatena o router do controller com o router global
-    bodyBuffer.writeln("_router.mount('$controllerPath', $routerVar);");
+    bodyBuffer.writeln("_router.mount('$controllerPath', $routerVar.call);");
 
     return bodyBuffer.toString();
   }

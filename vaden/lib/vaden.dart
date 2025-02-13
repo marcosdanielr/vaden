@@ -13,3 +13,4 @@ export 'src/annotations/annotation.dart';
 export 'src/types/disposable.dart';
 export 'src/types/types.dart';
 export 'src/utils/app_configuration.dart';
+export 'src/utils/storage/storage.dart';

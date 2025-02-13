@@ -1,6 +1,6 @@
 import 'package:vaden/vaden.dart';
 
-import 'auth_configuration.dart';
+import 'envtest.dart';
 
 @Service()
 class AuthService {

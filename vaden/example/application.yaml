@@ -16,6 +16,9 @@ storage:
     region: 'us-east-1'
     accessKey: 'sua_access_key'
     secretKey: 'seu_secret_key'
+  firebase:
+    projectId: 'my-project'
+    apiKey: 'my_api'
 
 database:
   provider: postgres
