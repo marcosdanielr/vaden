@@ -7,3 +7,4 @@ workspace:
   - vaden/example
   - vaden_cli
   - vaden_gen
+  - packages/anaki_orm

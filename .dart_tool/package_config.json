@@ -462,9 +462,15 @@
       "rootUri": "../vaden_gen",
       "packageUri": "lib/",
       "languageVersion": "3.6"
+    },
+    {
+      "name": "anaki_orm",
+      "rootUri": "../packages/anaki_orm",
+      "packageUri": "lib/",
+      "languageVersion": "3.6"
     }
   ],
-  "generated": "2025-02-12T11:39:37.857509Z",
+  "generated": "2025-02-13T14:21:21.522510Z",
   "generator": "pub",
   "generatorVersion": "3.6.1",
   "pubCache": "file:///C:/Users/jacob/.puro/shared/pub_cache"
