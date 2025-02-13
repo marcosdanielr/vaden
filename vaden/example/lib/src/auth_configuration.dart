@@ -4,13 +4,13 @@ import 'package:vaden/vaden.dart';
 class AuthConfiguration {
   @Bind()
   MyEnv myEnv() {
-    return MyEnv('http://localhost:3000', 'my-token');
+    return MyEnv('http://localhost:3000', 'myToken');
   }
 }
 
 class MyEnv {
-  final String url;
+  final String apiURL;
   final String token;
 
-  MyEnv(this.url, this.token);
+  MyEnv(this.apiURL, this.token);
 }

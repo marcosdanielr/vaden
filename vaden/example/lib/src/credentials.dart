@@ -2,28 +2,25 @@ import 'package:vaden/vaden.dart';
 
 @DTO()
 class Credentials with Validator<Credentials> {
-  final String email;
+  String username;
 
-  final String password;
+  String password;
 
-  Credentials(this.email, this.password);
+  Credentials(this.username, this.password);
 
-  // Na geração de código, colocar um Credentials.fromJson depois de pegar o corpo da requisição
-  static Credentials fromJson(Map<String, dynamic> json) {
-    return Credentials(json['email'], json['password']);
+  static Credentials fromJson(Map<String, dynamic> map) {
+    return Credentials(map['username'], map['password']);
   }
 
-  // Na geração de código validar automaticamente e retornar um badrequest ser der problema
   @override
   LucidValidator<Credentials> validate(ValidatorBuilder<Credentials> builder) {
     builder //
-        .ruleFor((c) => c.email, key: 'email')
-        .validEmail();
+        .ruleFor((c) => c.username, key: 'username')
+        .notEmpty();
 
     builder //
         .ruleFor((c) => c.password, key: 'password')
-        .minLength(6)
-        .maxLength(20)
+        .notEmpty()
         .mustHaveLowercase()
         .mustHaveUppercase()
         .mustHaveNumber()

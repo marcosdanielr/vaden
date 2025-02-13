@@ -277,10 +277,10 @@ packages:
     dependency: transitive
     description:
       name: lucid_validation
-      sha256: c20381cc75289c1143713ea124a02f26e4778af6e8edcb9eb61bed7fef1e6bd5
+      sha256: "9a8bc5b42e6df62ac5b87d2b7a2dbcd9d216c530a5027b9e724346fac84ab92d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.2.4"
+    version: "1.2.5"
   matcher:
     dependency: transitive
     description:
