@@ -1,3 +1,4 @@
+part 'openapi.dart';
 part 'rest.dart';
 
 class Component {
@@ -28,6 +29,15 @@ class Controller extends Component {
 
 class DTO extends Component {
   const DTO();
+}
+
+class JsonKey {
+  final String name;
+  const JsonKey(this.name);
+}
+
+class JsonIgnore {
+  const JsonIgnore();
 }
 
 class UseMiddleware {

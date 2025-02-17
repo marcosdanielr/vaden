@@ -2,15 +2,12 @@ import 'package:vaden/vaden.dart';
 
 @DTO()
 class Credentials with Validator<Credentials> {
+  @JsonKey('user_name')
   String username;
 
   String password;
 
   Credentials(this.username, this.password);
-
-  static Credentials fromJson(Map<String, dynamic> map) {
-    return Credentials(map['username'], map['password']);
-  }
 
   @override
   LucidValidator<Credentials> validate(ValidatorBuilder<Credentials> builder) {

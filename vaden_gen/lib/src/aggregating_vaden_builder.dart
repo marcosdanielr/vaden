@@ -8,6 +8,8 @@ import 'package:path/path.dart' as p;
 import 'package:source_gen/source_gen.dart';
 import 'package:vaden/vaden.dart';
 
+import 'setups/dto_setup.dart';
+
 class AggregatingVadenBuilder implements Builder {
   @override
   final Map<String, List<String>> buildExtensions = const {
@@ -49,6 +51,7 @@ class AggregatingVadenBuilder implements Builder {
   @override
   Future<void> build(BuildStep buildStep) async {
     final aggregatedBuffer = StringBuffer();
+    final dtoBuffer = StringBuffer();
     final importsBuffer = StringBuffer();
 
     final importSet = <String>{};
@@ -72,19 +75,20 @@ class AggregatingVadenBuilder implements Builder {
     aggregatedBuffer.writeln('''
   Future<HttpServer> run() async {
     final pipeline = _injector.get<Pipeline>();
-    final handle = pipeline.addHandler(_router.call);
+    final handler = pipeline.addHandler(_router.call);
 
     final settings = _injector.get<ApplicationSettings>();
     final port = settings['server']['port'] ?? 8080;
     final host = settings['server']['host'] ?? '0.0.0.0';
 
-    final server = await serve(handle, host, port);
+    final server = await serve(handler, host, port);
 
     return server;
   }
 ''');
     aggregatedBuffer.writeln();
-    aggregatedBuffer.writeln('  Future<void> setup() async {');
+    aggregatedBuffer.writeln('Future<void> setup() async {');
+    aggregatedBuffer.writeln('_injector.addSingleton<DTOFactory>(_DTOFactory.new);');
 
     final body = await buildStep //
         .findAssets(Glob('lib/**/*.dart'))
@@ -120,6 +124,8 @@ class AggregatingVadenBuilder implements Builder {
         bodyBuffer.writeln(_configurationSetup(classElement));
       } else if (controllerChecker.hasAnnotationOf(classElement)) {
         bodyBuffer.writeln(_controllerSetup(classElement));
+      } else if (dtoChecker.hasAnnotationOf(classElement)) {
+        dtoBuffer.writeln(dtoSetup(classElement));
       }
 
       return bodyBuffer.toString();
@@ -129,13 +135,28 @@ class AggregatingVadenBuilder implements Builder {
 
     aggregatedBuffer.writeln('    _injector.commit();');
     aggregatedBuffer.writeln('  }');
-
     aggregatedBuffer.writeln('}');
 
     importsBuffer.writeln(importSet.map((uri) => "import '$uri';").join('\n'));
 
     importsBuffer.writeln();
     importsBuffer.writeln(aggregatedBuffer.toString());
+
+    importsBuffer.writeln();
+    importsBuffer.writeln('''
+class _DTOFactory extends DTOFactory {
+  @override
+  (Map<Type, FromJsonFunction>, Map<Type, ToJsonFunction>, Map<Type, ToOpenApiFunction>) getMaps() {
+    final fromJsonMap = <Type, FromJsonFunction>{};
+    final toJsonMap = <Type, ToJsonFunction>{};
+    final toOpenApiMap = <Type, ToOpenApiFunction>{};
+
+    $dtoBuffer
+
+    return (fromJsonMap, toJsonMap, toOpenApiMap);
+  }
+}
+''');
 
     final formattedCode = formatter.format(importsBuffer.toString());
 
@@ -188,23 +209,12 @@ ${bodyBuffer.toString()}
   String _controllerSetup(ClassElement classElement) {
     final bodyBuffer = StringBuffer();
 
-    // Helpers para envolver Guards e Middlewares
-    String wrapGuard(String guardTypeName) {
-      return """
-(Handler inner) {
-  return (Request request) async {
-    final guard = _injector.get<$guardTypeName>();
-    return await guard.handle(request, inner);
-  };
-}""";
-    }
-
     String wrapMiddleware(String middlewareTypeName) {
       return """
 (Handler inner) {
   return (Request request) async {
-    final m = _injector.get<$middlewareTypeName>();
-    return await m.handle(request, inner);
+    final guard = _injector.get<$middlewareTypeName>();
+    return await guard.handler(request, inner);
   };
 }""";
     }
@@ -244,7 +254,7 @@ ${bodyBuffer.toString()}
         for (final g in guardList) {
           final guardTypeName = g.toTypeValue()?.getDisplayString();
           if (guardTypeName != null) {
-            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapGuard(guardTypeName)});");
+            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapMiddleware(guardTypeName)});");
           }
         }
       }
@@ -265,7 +275,7 @@ ${bodyBuffer.toString()}
         for (final g in guardList) {
           final guardTypeName = g.toTypeValue()?.getDisplayString();
           if (guardTypeName != null) {
-            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapGuard(guardTypeName)});");
+            bodyBuffer.writeln("$pipelineVar = $pipelineVar.addMiddleware(${wrapMiddleware(guardTypeName)});");
           }
         }
       }
@@ -286,7 +296,15 @@ ${bodyBuffer.toString()}
           paramCodeList.add("""
 final bodyString = await request.readAsString();
 final json = jsonDecode(bodyString) as Map<String, dynamic>;
-final ${parameter.name} = $typeName.fromJson(json) as dynamic;
+final ${parameter.name} =  _injector.get<DTOFactory>().fromJson<$typeName>(json) as dynamic;
+
+if (credentials == null) {
+        return Response(
+          400,
+          body: jsonEncode({'error': 'Invalid body: ($typeName)'}),
+        );
+}
+
 if (${parameter.name} is Validator<$typeName>) {
   final validator = ${parameter.name}.validate(ValidatorBuilder<$typeName>());
   final resultValidator = validator.validate(credentials  as $typeName);

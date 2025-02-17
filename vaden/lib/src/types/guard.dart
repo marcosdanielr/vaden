@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:vaden/vaden.dart';
 
-abstract class Guard extends Middleware {
+abstract class VadenGuard extends VadenMiddleware {
   FutureOr<bool> canActivate(Request request);
 
   @override
-  FutureOr<Response> handle(Request request, Handler handler) async {
+  FutureOr<Response> handler(Request request, Handler handler) async {
     final result = await canActivate(request);
 
     if (result) {
