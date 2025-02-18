@@ -15,4 +15,5 @@ export 'src/types/disposable.dart';
 export 'src/types/dto_factory.dart';
 export 'src/types/types.dart';
 export 'src/utils/app_configuration.dart';
+export 'src/utils/openapi_config.dart';
 export 'src/utils/storage/storage.dart';

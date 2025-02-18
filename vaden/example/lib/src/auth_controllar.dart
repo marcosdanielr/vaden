@@ -5,7 +5,7 @@ import 'auth_service.dart';
 import 'credentials.dart';
 import 'tokenization.dart';
 
-@Api(tags: ['auth'], description: 'Auth API')
+@Api(tag: 'auth', description: 'Auth API')
 @Controller('/auth')
 class AuthControllar {
   final AuthService _authService;
@@ -23,6 +23,7 @@ class AuthControllar {
     return Response.ok('other $id');
   }
 
+  @ApiSecurity(['bearer'])
   @ApiOperation(summary: 'Faz login de usuário', description: 'Valida as credenciais e retorna um token de sessão')
   @ApiResponse(
     200,
@@ -32,9 +33,7 @@ class AuthControllar {
   @ApiResponse(401, description: 'Credenciais inválidas')
   @Post('/login')
   Future<Response> login(
-    @ApiParam(name: 'credentials', description: 'email and password ', required: true) //
-    @Body()
-    Credentials credentials,
+    @Body() Credentials credentials,
   ) async {
     return Response.ok('login ${credentials.username}');
   }

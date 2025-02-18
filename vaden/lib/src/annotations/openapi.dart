@@ -1,9 +1,9 @@
 part of 'annotation.dart';
 
 class Api {
-  final List<String> tags;
+  final String tag;
   final String description;
-  const Api({this.tags = const [], this.description = ''});
+  const Api({required this.tag, this.description = ''});
 }
 
 class ApiOperation {
@@ -29,8 +29,21 @@ class ApiContent {
 }
 
 class ApiParam {
-  final String name;
+  final String? name;
   final String description;
   final bool required;
-  const ApiParam({required this.name, this.description = '', this.required = false});
+  const ApiParam({this.name, this.description = '', this.required = false});
+}
+
+class ApiQuery {
+  final String? name;
+  final String description;
+  final bool required;
+  const ApiQuery({this.name, this.description = '', this.required = false});
+}
+
+class ApiSecurity {
+  final List<String> schemes;
+
+  const ApiSecurity(this.schemes);
 }

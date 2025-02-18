@@ -1,7 +1,8 @@
-import 'package:example/src/other_credentials.dart';
+import 'dart:convert';
+
 import 'package:example/vaden_application.dart';
 import 'package:test/test.dart';
-import 'package:vaden/vaden.dart';
+import 'package:vaden/vaden_openapi.dart';
 
 void main() {
   test('vaden application ...', () async {
@@ -9,18 +10,8 @@ void main() {
 
     await app.setup();
 
-    final factory = app.injector.get<DTOFactory>();
+    final open = app.injector.get<OpenApi>();
 
-    final credentials = factory.fromJson<OtherCredentials>({
-      'other': 'other',
-      'credentials': {
-        'user_name': 'user',
-        'password': 'Password1!',
-      }
-    })!;
-
-    expect(credentials.credentials.username, 'user');
-    expect(credentials.credentials.password, 'Password1!');
-    expect(credentials.other, 'other');
+    print(jsonEncode(open.toJson()));
   });
 }
