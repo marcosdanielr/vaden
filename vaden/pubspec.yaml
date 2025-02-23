@@ -9,7 +9,7 @@ resolution: workspace
 
 # Add regular dependencies here.
 dependencies:
-  auto_injector: ^2.0.5
+  auto_injector: ^2.1.0
   lucid_validation: ^1.2.5
   shelf: ^1.4.2
   shelf_router: ^1.1.4

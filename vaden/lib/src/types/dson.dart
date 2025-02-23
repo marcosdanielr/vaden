@@ -4,13 +4,13 @@ typedef ToJsonFunction<T> = Map<String, dynamic> Function(T object);
 /// added to openapi
 typedef ToOpenApiNormalMap = Map<String, dynamic>;
 
-abstract class DTOFactory {
+abstract class DSON {
   late final Map<Type, FromJsonFunction> _mapFromJson;
   late final Map<Type, ToJsonFunction> _mapToJson;
   //added to openapi
   late final Map<Type, ToOpenApiNormalMap> _mapToOpenApi;
 
-  DTOFactory() {
+  DSON() {
     final maps = getMaps();
     _mapFromJson = maps.$1;
     _mapToJson = maps.$2;

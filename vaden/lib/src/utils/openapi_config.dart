@@ -14,14 +14,14 @@ class OpenApiConfig {
     this._settings,
   );
 
-  static OpenApiConfig Function(DTOFactory dtoFactory, ApplicationSettings settings) create(
+  static OpenApiConfig Function(DSON dson, ApplicationSettings settings) create(
     Map<String, dynamic> paths,
     List<Api> apis,
   ) {
-    return (dtoFactory, settings) {
+    return (dson, settings) {
       return OpenApiConfig(
         paths,
-        dtoFactory.apiEntries,
+        dson.apiEntries,
         apis,
         settings,
       );

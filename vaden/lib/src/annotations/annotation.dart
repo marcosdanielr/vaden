@@ -1,34 +1,55 @@
 part 'openapi.dart';
 part 'rest.dart';
 
-class Component {
-  const Component();
+abstract interface class BaseComponent {
+  bool get registerWithInterfaceOrSuperType;
 }
 
-class Service extends Component {
+final class Component implements BaseComponent {
+  @override
+  final bool registerWithInterfaceOrSuperType;
+  const Component([this.registerWithInterfaceOrSuperType = false]);
+}
+
+final class Service implements BaseComponent {
   const Service();
+
+  @override
+  final bool registerWithInterfaceOrSuperType = true;
 }
 
-class Repository extends Component {
+final class Repository implements BaseComponent {
   const Repository();
+
+  @override
+  final bool registerWithInterfaceOrSuperType = true;
 }
 
-class Configuration extends Component {
+final class Configuration implements BaseComponent {
   const Configuration();
+
+  @override
+  final bool registerWithInterfaceOrSuperType = false;
 }
 
-class Bind {
-  const Bind();
+class Bean {
+  const Bean();
 }
 
-class Controller extends Component {
+final class Controller implements BaseComponent {
   final String path;
 
   const Controller(this.path);
+
+  @override
+  final bool registerWithInterfaceOrSuperType = false;
 }
 
-class DTO extends Component {
+final class DTO implements BaseComponent {
   const DTO();
+
+  @override
+  final bool registerWithInterfaceOrSuperType = false;
 }
 
 class JsonKey {

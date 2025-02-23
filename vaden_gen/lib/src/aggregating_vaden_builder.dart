@@ -27,10 +27,10 @@ class AggregatingVadenBuilder implements Builder {
 
   final formatter = DartFormatter(languageVersion: DartFormatter.latestLanguageVersion);
 
-  final componentChecker = TypeChecker.fromRuntime(Component);
+  final componentChecker = TypeChecker.fromRuntime(BaseComponent);
   final controllerChecker = TypeChecker.fromRuntime(Controller);
   final configurationChecker = TypeChecker.fromRuntime(Configuration);
-  final bindChecker = TypeChecker.fromRuntime(Bind);
+  final beanChecker = TypeChecker.fromRuntime(Bean);
   final bodyChecker = TypeChecker.fromRuntime(Body);
   final dtoChecker = TypeChecker.fromRuntime(DTO);
   // documentation
@@ -101,7 +101,7 @@ class AggregatingVadenBuilder implements Builder {
     aggregatedBuffer.writeln('Future<void> setup() async {');
     aggregatedBuffer.writeln('final paths = <String, dynamic>{};');
     aggregatedBuffer.writeln('final apis = <Api>[];');
-    aggregatedBuffer.writeln('_injector.addSingleton<DTOFactory>(_DTOFactory.new);');
+    aggregatedBuffer.writeln('_injector.addSingleton<DSON>(_DSON.new);');
 
     final body = await buildStep //
         .findAssets(Glob('lib/**/*.dart'))
@@ -110,27 +110,27 @@ class AggregatingVadenBuilder implements Builder {
       final reader = LibraryReader(library);
 
       for (var classElement in reader.classes) {
-        if (componentChecker.hasAnnotationOfExact(classElement)) {
-          yield classElement;
+        final component = componentChecker.firstAnnotationOf(classElement);
+        if (component != null) {
+          final registerWithInterfaceOrSuperType = component.getField('registerWithInterfaceOrSuperType')!.toBoolValue()!;
+
+          yield (classElement, registerWithInterfaceOrSuperType);
           continue;
         }
-
-        for (final meta in classElement.metadata) {
-          final obj = meta.computeConstantValue();
-          if (obj == null) continue;
-          if (componentChecker.isAssignableFromType(obj.type!)) {
-            yield classElement;
-          }
-        }
       }
-    }).map((classElement) {
+    }).map((record) {
+      final (classElement, registerWithInterfaceOrSuperType) = record;
       final uri = classElement.librarySource.uri.toString();
       importSet.add(uri);
-      return classElement;
-    }).map((classElement) {
+      return record;
+    }).map((record) {
+      final (classElement, registerWithInterfaceOrSuperType) = record;
+
       final bodyBuffer = StringBuffer();
-      if (!dtoChecker.hasAnnotationOf(classElement) && !configurationChecker.hasAnnotationOf(classElement)) {
-        bodyBuffer.writeln('    _injector.addSingleton(${classElement.name}.new);');
+
+      final registerText = _componentRegister(classElement, registerWithInterfaceOrSuperType);
+      if (registerText.isNotEmpty) {
+        bodyBuffer.writeln(registerText);
       }
 
       if (configurationChecker.hasAnnotationOf(classElement)) {
@@ -158,7 +158,7 @@ class AggregatingVadenBuilder implements Builder {
 
     importsBuffer.writeln();
     importsBuffer.writeln('''
-class _DTOFactory extends DTOFactory {
+class _DSON extends DSON {
   @override
   (Map<Type, FromJsonFunction>, Map<Type, ToJsonFunction>, Map<Type, ToOpenApiNormalMap>) getMaps() {
     final fromJsonMap = <Type, FromJsonFunction>{};
@@ -178,21 +178,26 @@ class _DTOFactory extends DTOFactory {
     await buildStep.writeAsString(outputId, formattedCode);
   }
 
-  bool libraryComponent(LibraryReader library) {
-    for (final classElement in library.classes) {
-      if (componentChecker.hasAnnotationOfExact(classElement)) {
-        return true;
-      }
+  String _componentRegister(ClassElement classElement, bool registerWithInterfaceOrSuperType) {
+    if (dtoChecker.hasAnnotationOf(classElement) || configurationChecker.hasAnnotationOf(classElement)) {
+      return '';
+    }
 
-      for (final meta in classElement.metadata) {
-        final obj = meta.computeConstantValue();
-        if (obj == null) continue;
-        if (componentChecker.isAssignableFromType(obj.type!)) {
-          return true;
-        }
+    if (registerWithInterfaceOrSuperType) {
+      final interfaceType = classElement.interfaces.firstOrNull ?? classElement.supertype;
+      if (interfaceType != null) {
+        return '''
+      _injector.addBind(
+        ${interfaceType.getDisplayString()},
+        ${classElement.name}.new,
+      );
+      
+      
+''';
       }
     }
-    return false;
+
+    return '_injector.addSingleton(${classElement.name}.new);';
   }
 
   String _configurationSetup(ClassElement classElement) {
@@ -201,8 +206,9 @@ class _DTOFactory extends DTOFactory {
     final instanceName = 'configuration${classElement.name}';
 
     for (final method in classElement.methods) {
-      if (bindChecker.hasAnnotationOf(method)) {
+      if (beanChecker.hasAnnotationOf(method)) {
         if (method.returnType.isDartAsyncFuture) {
+          log.severe('${method.name} is a Future method, but it is not supported in Configuration class.');
         } else {
           bodyBuffer.writeln('    _injector.addSingleton($instanceName.${method.name});');
         }
@@ -426,7 +432,7 @@ paths['$apiPathResolver']['$routerMethod']['requestBody'] = {
           paramCodeList.add("""
 final bodyString = await request.readAsString();
 final json = jsonDecode(bodyString) as Map<String, dynamic>;
-final ${parameter.name} =  _injector.get<DTOFactory>().fromJson<$typeName>(json) as dynamic;
+final ${parameter.name} =  _injector.get<DSON>().fromJson<$typeName>(json) as dynamic;
 
 if (${parameter.name} == null) {
         return Response(

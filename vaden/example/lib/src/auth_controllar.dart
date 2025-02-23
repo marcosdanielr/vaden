@@ -1,7 +1,7 @@
+import 'package:example/src/auth_service.dart';
 import 'package:vaden/vaden.dart';
 
 import 'auth_guard.dart';
-import 'auth_service.dart';
 import 'credentials.dart';
 import 'tokenization.dart';
 

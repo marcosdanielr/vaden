@@ -3,23 +3,23 @@ import 'package:vaden/vaden_openapi.dart';
 
 @Configuration()
 class AppConfiguration {
-  @Bind()
+  @Bean()
   ApplicationSettings settings() {
     return ApplicationSettings.load('application.yaml');
   }
 
-  @Bind()
+  @Bean()
   Storage configStorage(ApplicationSettings settings) {
     return Storage.createStorageService(settings);
   }
 
-  @Bind()
+  @Bean()
   Pipeline globalMiddleware(ApplicationSettings settings) {
     return Pipeline() //
         .addMiddleware(logRequests());
   }
 
-  @Bind()
+  @Bean()
   OpenApi openApi(OpenApiConfig config) {
     return OpenApi(
       version: '3.0.0',

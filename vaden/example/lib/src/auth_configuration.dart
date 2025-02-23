@@ -5,8 +5,8 @@ import 'envtest.dart';
 
 @Configuration()
 class AuthConfiguration {
-  @Bind()
-  MyEnv myEnv(DTOFactory factory) {
+  @Bean()
+  MyEnv myEnv(DSON factory) {
     final credentials = Credentials('myUsername', 'myPassword');
 
     final json = factory.toJson(credentials);
