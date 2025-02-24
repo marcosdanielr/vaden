@@ -50,6 +50,7 @@ class AggregatingVadenBuilder implements Builder {
     (TypeChecker.fromRuntime(Delete), 'delete'),
     (TypeChecker.fromRuntime(Head), 'head'),
     (TypeChecker.fromRuntime(Options), 'options'),
+    (TypeChecker.fromRuntime(Mount), 'mount'),
   ];
 
   final useGuardsChecker = TypeChecker.fromRuntime(UseGuards);
@@ -187,12 +188,11 @@ class _DSON extends DSON {
       final interfaceType = classElement.interfaces.firstOrNull ?? classElement.supertype;
       if (interfaceType != null) {
         return '''
-      _injector.addBind(
-        ${interfaceType.getDisplayString()},
-        ${classElement.name}.new,
-      );
-      
-      
+      _injector.addBind(Bind.withClassName(
+      constructor: ${classElement.name}.new,
+      type: BindType.singleton,
+      className: '${interfaceType.getDisplayString()}',
+    ));   
 ''';
       }
     }

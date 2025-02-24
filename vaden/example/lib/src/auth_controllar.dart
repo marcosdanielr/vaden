@@ -24,7 +24,10 @@ class AuthControllar {
   }
 
   @ApiSecurity(['bearer'])
-  @ApiOperation(summary: 'Faz login de usuário', description: 'Valida as credenciais e retorna um token de sessão')
+  @ApiOperation(
+    summary: 'Faz login de usuário',
+    description: 'Valida as credenciais e retorna um token de sessão',
+  )
   @ApiResponse(
     200,
     description: 'Usuário autenticado com sucesso',
@@ -35,6 +38,6 @@ class AuthControllar {
   Future<Response> login(
     @Body() Credentials credentials,
   ) async {
-    return Response.ok('login ${credentials.username}');
+    return Response.ok(credentials);
   }
 }

@@ -34,3 +34,8 @@ class Options {
   final String path;
   const Options(this.path);
 }
+
+class Mount {
+  final String path;
+  const Mount(this.path);
+}
