@@ -5,7 +5,6 @@ environment:
 workspace:
   - vaden
   - vaden/example
-  - vaden_cli
-  - vaden_gen
+  - vaden_class_scanner
   - packages/anaki_orm
 
