@@ -1,7 +1,7 @@
 name: vaden_class_scanner
 description: A starting point for Dart libraries or applications.
-version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+version: 0.0.1
+repository: https://github.com/Flutterando/vaden
 
 environment:
   sdk: ^3.6.0
