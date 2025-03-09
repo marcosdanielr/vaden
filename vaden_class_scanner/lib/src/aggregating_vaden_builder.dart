@@ -186,7 +186,7 @@ class _DSON extends DSON {
 
     if (registerWithInterfaceOrSuperType) {
       final interfaceType = classElement.interfaces.firstOrNull ?? classElement.supertype;
-      if (interfaceType != null) {
+      if (interfaceType != null && interfaceType.getDisplayString() != 'Object') {
         return '''
       _injector.addBind(Bind.withClassName(
       constructor: ${classElement.name}.new,

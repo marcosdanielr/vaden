@@ -12,17 +12,17 @@ final class Component implements BaseComponent {
 }
 
 final class Service implements BaseComponent {
-  const Service();
+  const Service([this.registerWithInterfaceOrSuperType = true]);
 
   @override
-  final bool registerWithInterfaceOrSuperType = true;
+  final bool registerWithInterfaceOrSuperType;
 }
 
 final class Repository implements BaseComponent {
-  const Repository();
+  const Repository([this.registerWithInterfaceOrSuperType = true]);
 
   @override
-  final bool registerWithInterfaceOrSuperType = true;
+  final bool registerWithInterfaceOrSuperType;
 }
 
 final class Configuration implements BaseComponent {
