@@ -58,8 +58,8 @@ dependencies:
 ## Community
 
 Join our community for support and updates:
-- [Flutterando Discord](https://discord.gg/flutterando)
-- [Mobile Devs Ceará (WhatsApp)](https://whatsapp.group/mobiledevsceara)
+- [Flutterando Discord](https://discord.flutterando.com.br/)
+- [Mobile Devs Ceará (WhatsApp)](https://chat.whatsapp.com/FrD3kbmvW5bB2hMqZBlwyA)
 
 ## Contributing
 
