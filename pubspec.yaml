@@ -6,5 +6,7 @@ workspace:
   - vaden
   - vaden/example
   - vaden_class_scanner
+  - vaden_generator/backend
+  - vaden_generator/frontend
   - packages/anaki_orm
 
