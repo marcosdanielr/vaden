@@ -98,7 +98,7 @@ String _fromJson(ClassElement classElement) {
     }
 
     if (parameter.isNamed) {
-      construtorBuffer.writeln("    $paramName: $paramValue,");
+      construtorBuffer.writeln("    ${parameter.name}: $paramValue,");
     } else {
       construtorBuffer.writeln("    $paramValue,");
     }
