@@ -102,7 +102,8 @@ class AggregatingVadenBuilder implements Builder {
     aggregatedBuffer.writeln('Future<void> setup() async {');
     aggregatedBuffer.writeln('final paths = <String, dynamic>{};');
     aggregatedBuffer.writeln('final apis = <Api>[];');
-    aggregatedBuffer.writeln('_injector.addSingleton<DSON>(_DSON.new);');
+    aggregatedBuffer.writeln('final asyncBeans = <Future<void> Function()>[];');
+    aggregatedBuffer.writeln('_injector.addLazySingleton<DSON>(_DSON.new);');
 
     final body = await buildStep //
         .findAssets(Glob('lib/**/*.dart'))
@@ -147,8 +148,15 @@ class AggregatingVadenBuilder implements Builder {
 
     aggregatedBuffer.writeln(body.join('\n'));
 
-    aggregatedBuffer.writeln('    _injector.addSingleton(OpenApiConfig.create(paths, apis).call);');
+    aggregatedBuffer.writeln('    _injector.addLazySingleton(OpenApiConfig.create(paths, apis).call);');
     aggregatedBuffer.writeln('    _injector.commit();');
+    aggregatedBuffer.writeln('''
+
+    for (final asyncBean in asyncBeans) {
+      await asyncBean();
+    }
+
+''');
     aggregatedBuffer.writeln('  }');
     aggregatedBuffer.writeln('}');
 
@@ -190,14 +198,14 @@ class _DSON extends DSON {
         return '''
       _injector.addBind(Bind.withClassName(
       constructor: ${classElement.name}.new,
-      type: BindType.singleton,
+      type: BindType.lazySingleton,
       className: '${interfaceType.getDisplayString()}',
     ));   
 ''';
       }
     }
 
-    return '_injector.addSingleton(${classElement.name}.new);';
+    return '_injector.addLazySingleton(${classElement.name}.new);';
   }
 
   String _configurationSetup(ClassElement classElement) {
@@ -208,9 +216,24 @@ class _DSON extends DSON {
     for (final method in classElement.methods) {
       if (beanChecker.hasAnnotationOf(method)) {
         if (method.returnType.isDartAsyncFuture) {
-          log.severe('${method.name} is a Future method, but it is not supported in Configuration class.');
+          final parametersCode = method.parameters.map((param) {
+            if (param.isNamed) {
+              return '${param.name}: _injector()';
+            }
+            return '_injector()';
+          }).join(', ');
+
+          bodyBuffer.writeln('''
+asyncBeans.add(() async {
+final result = await $instanceName.${method.name}($parametersCode);
+ _injector.uncommit();
+_injector.addInstance(result);
+ _injector.commit();
+});
+
+''');
         } else {
-          bodyBuffer.writeln('    _injector.addSingleton($instanceName.${method.name});');
+          bodyBuffer.writeln('    _injector.addLazySingleton($instanceName.${method.name});');
         }
       }
     }
@@ -503,9 +526,39 @@ paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
         bodyBuffer.writeln("  $code");
       }
       final callParams = method.parameters.map((p) => p.name).join(', ');
-      bodyBuffer.writeln("  final ctrl = _injector.get<$controllerName>();");
-      bodyBuffer.writeln("  final result = await ctrl.${method.name}($callParams);");
-      bodyBuffer.writeln("  return result;");
+      final isFuture = method.returnType.isDartAsyncFuture || method.returnType.isDartAsyncFutureOr;
+      final returnType = _getUnderlyingType(method.returnType);
+
+      bodyBuffer.writeln("final ctrl = _injector.get<$controllerName>();");
+
+      if (returnType.getDisplayString() == 'Response') {
+        bodyBuffer.writeln("""
+  final result = ${isFuture ? 'await' : ''} ctrl.${method.name}($callParams);
+  return result;
+""");
+      } else {
+        var toJson = "  final json = _injector.get<DSON>().toJson<${returnType.getDisplayString()}>(result);";
+        if (returnType.isDartCoreList) {
+          final elementType = _extractListElementType(returnType);
+          toJson = "  final json = _injector.get<DSON>().toJsonList<${elementType.getDisplayString()}>(result);";
+        } else if (returnType.isDartCoreMap) {
+          toJson = "  final json = result;";
+        }
+
+        bodyBuffer.writeln("""
+ try {
+   final result = ${isFuture ? 'await' : ''} ctrl.${method.name}($callParams);
+  $toJson
+  return Response.ok(jsonEncode(json));
+ } on ResponseException catch (e) {
+   return e.response;
+ } catch (e) {
+   return Response(500, body: jsonEncode({'error': 'Internal server error'}));
+ }
+
+""");
+      }
+
       bodyBuffer.writeln("};");
 
       bodyBuffer.writeln("$routerVar.$routerMethod('$routePath', $pipelineVar.addHandler($handlerVar));");
@@ -528,6 +581,19 @@ paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
 
   bool _isNullable(DartType type) {
     return type.nullabilitySuffix != NullabilitySuffix.none;
+  }
+
+  DartType _getUnderlyingType(DartType type) {
+    if (type.isDartAsyncFuture || type.isDartAsyncFutureOr) {
+      final futureType = type as ParameterizedType;
+      final typeArguments = futureType.typeArguments;
+
+      if (typeArguments.isNotEmpty) {
+        return typeArguments.first;
+      }
+    }
+
+    return type;
   }
 }
 

@@ -6,7 +6,7 @@ import 'envtest.dart';
 @Configuration()
 class AuthConfiguration {
   @Bean()
-  MyEnv myEnv(DSON factory) {
+  Future<MyEnv> myEnv(DSON factory) async {
     final credentials = Credentials('myUsername', 'myPassword');
 
     final json = factory.toJson(credentials);

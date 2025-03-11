@@ -40,6 +40,10 @@ abstract class DSON {
     return toJsonFunction(object);
   }
 
+  List<Map<String, dynamic>> toJsonList<T>(List<T> object) {
+    return object.map((e) => toJson<T>(e)!).toList();
+  }
+
   Map<String, dynamic>? toOpenApi<T>() {
     final toOpenApiNormalMap = _mapToOpenApi[T];
     if (toOpenApiNormalMap == null) {

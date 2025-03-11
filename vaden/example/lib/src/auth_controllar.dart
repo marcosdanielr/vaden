@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:example/src/auth_service.dart';
 import 'package:vaden/vaden.dart';
 
@@ -15,15 +17,15 @@ class AuthControllar {
   @UseGuards([AuthGuard])
   @Get('/ping')
   Future<Response> ping() async {
-    return Response.ok(_authService.ping());
-  }
-
-  @Get('/other/<id>')
-  Future<Response> other(@Param('id') String id) async {
-    return Response.ok('other $id');
+    return Response.ok(jsonEncode({"message": _authService.ping()}));
   }
 
   @ApiSecurity(['bearer'])
+  @Get('/other/<id>')
+  Future<Response> other(@Param('id') String id) async {
+    return Response.ok(jsonEncode({"message": 'other $id'}));
+  }
+
   @ApiOperation(
     summary: 'Faz login de usuário',
     description: 'Valida as credenciais e retorna um token de sessão',
@@ -35,9 +37,9 @@ class AuthControllar {
   )
   @ApiResponse(401, description: 'Credenciais inválidas')
   @Post('/login')
-  Future<Response> login(
+  Tokenization login(
     @Body() Credentials credentials,
-  ) async {
-    return Response.ok(credentials);
+  ) {
+    return Tokenization('fdsfsfsfsfsgdfrtr', 'fsdfrgbsbsfa');
   }
 }

@@ -40,7 +40,7 @@ String _toOpenApi(ClassElement classElement) {
   final fields = classElement.fields.where((f) => !f.isStatic && !f.isPrivate);
   bool first = true;
   for (final field in fields) {
-    final fieldName = field.name;
+    final fieldName = _getFieldName(field);
     final schema = _fieldToSchema(field.type);
     if (!first) propertiesBuffer.writeln(',');
     propertiesBuffer.write('    "$fieldName": $schema');
