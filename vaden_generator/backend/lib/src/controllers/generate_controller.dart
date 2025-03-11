@@ -1,5 +1,5 @@
 import 'package:backend/src/domain/dtos/dependency_dto.dart';
-import 'package:backend/src/domain/dtos/generate_info_dto.dart';
+import 'package:backend/src/domain/dtos/project_dto.dart';
 import 'package:backend/src/domain/dtos/project_link_dto.dart';
 import 'package:backend/src/domain/usecases/create_project.dart';
 import 'package:backend/src/domain/usecases/get_dependencies.dart';

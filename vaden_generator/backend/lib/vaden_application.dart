@@ -4,21 +4,21 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'package:vaden/vaden.dart';
 
-import 'package:backend/config/resources/resource_controller.dart';
-import 'package:backend/config/resources/resource_configuration.dart';
+import 'package:backend/config/app_configuration.dart';
 import 'package:backend/config/openapi/openapi_configuration.dart';
 import 'package:backend/config/openapi/openapi_controller.dart';
-import 'package:backend/config/app_configuration.dart';
+import 'package:backend/config/resources/resource_configuration.dart';
+import 'package:backend/config/resources/resource_controller.dart';
 import 'package:backend/src/controllers/generate_controller.dart';
 import 'package:backend/src/data/repositories/dependency_repository_impl.dart';
 import 'package:backend/src/data/services/generate_service_impl.dart';
-import 'package:backend/src/domain/dtos/project_link_dto.dart';
 import 'package:backend/src/domain/dtos/dependency_dto.dart';
-import 'package:backend/src/domain/dtos/generate_info_dto.dart';
-import 'package:backend/src/domain/usecases/get_dependencies.dart';
+import 'package:backend/src/domain/dtos/project_dto.dart';
+import 'package:backend/src/domain/dtos/project_link_dto.dart';
 import 'package:backend/src/domain/usecases/create_project.dart';
+import 'package:backend/src/domain/usecases/get_dependencies.dart';
+import 'package:vaden/vaden.dart';
 
 class VadenApplication {
   final _router = Router();
@@ -109,21 +109,18 @@ class VadenApplication {
     };
 
     paths['/v1/generate/dependencies']['get']['summary'] = 'Get dependencies';
-    paths['/v1/generate/dependencies']['get']['description'] =
-        'Get all dependencies';
+    paths['/v1/generate/dependencies']['get']['description'] = 'Get all dependencies';
     paths['/v1/generate/dependencies']['get']['responses']['200'] = {
       'description': 'Dependencies returned',
       'content': <String, dynamic>{},
     };
 
-    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json'] =
-        <String, dynamic>{};
+    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json'] = <String, dynamic>{};
 
-    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json']['schema'] =
-        {
-          'type': 'array',
-          'items': {'\$ref': '#/components/schemas/DependencyDTO'},
-        };
+    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json']['schema'] = {
+      'type': 'array',
+      'items': {'\$ref': '#/components/schemas/DependencyDTO'},
+    };
 
     var pipelineGenerateControllergetDependencies = const Pipeline();
     final handlerGenerateControllergetDependencies = (Request request) async {
@@ -165,11 +162,9 @@ class VadenApplication {
       'content': <String, dynamic>{},
     };
 
-    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json'] =
-        <String, dynamic>{};
+    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json'] = <String, dynamic>{};
 
-    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json']['schema'] =
-        {'\$ref': '#/components/schemas/ProjectLinkDTO'};
+    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json']['schema'] = {'\$ref': '#/components/schemas/ProjectLinkDTO'};
 
     var pipelineGenerateControllercreate = const Pipeline();
     paths['/v1/generate/create']['get']['requestBody'] = {
@@ -261,8 +256,7 @@ class _DSON extends DSON {
     Map<Type, FromJsonFunction>,
     Map<Type, ToJsonFunction>,
     Map<Type, ToOpenApiNormalMap>,
-  )
-  getMaps() {
+  ) getMaps() {
     final fromJsonMap = <Type, FromJsonFunction>{};
     final toJsonMap = <Type, ToJsonFunction>{};
     final toOpenApiMap = <Type, ToOpenApiNormalMap>{};
