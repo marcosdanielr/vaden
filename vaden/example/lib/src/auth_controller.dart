@@ -10,10 +10,10 @@ import 'tokenization.dart';
 
 @Api(tag: 'auth', description: 'Auth API')
 @Controller('/auth')
-class AuthControllar {
+class AuthController {
   final AuthService _authService;
 
-  AuthControllar(this._authService);
+  AuthController(this._authService);
 
   @UseGuards([AuthGuard])
   @Get('/ping')
