@@ -56,7 +56,6 @@ class AuthController {
       return Response.unauthorized('Token not found');
     }
 
-    return Response.ok(
-        'Token recuperado do header: ${token.replaceFirst('Bearer ', '')}');
+    return Response.ok('Token recuperado do header: ${token.replaceFirst('Bearer ', '')}');
   }
 }
