@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:example/src/product_dto.dart';
 import 'package:vaden/vaden.dart';
 
+@Api(tag: 'hello')
 @Controller('/hello')
 class HelloController {
   @Get('/ping')
@@ -36,5 +37,18 @@ class HelloController {
   @Get('/application.yaml')
   List<int> application() {
     return File('application.yaml').readAsBytesSync();
+  }
+
+  @Get('/exception')
+  Response withException() {
+    throw Exception('This is an exception');
+  }
+
+  @Get('/response-exception')
+  Response withResponseException() {
+    throw ResponseException(
+      400,
+      {'message': 'This is a response exception'},
+    );
   }
 }

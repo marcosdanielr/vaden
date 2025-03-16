@@ -1,3 +1,5 @@
+import 'package:vaden/src/types/response_exception.dart';
+
 typedef FromJsonFunction<T> = T Function(Map<String, dynamic> json);
 typedef ToJsonFunction<T> = Map<String, dynamic> Function(T object);
 
@@ -24,24 +26,28 @@ abstract class DSON {
     Map<Type, ToOpenApiNormalMap>,
   ) getMaps();
 
-  T? fromJson<T>(Map<String, dynamic> json) {
+  T fromJson<T>(Map<String, dynamic> json) {
     final FromJsonFunction? fromJsonFunction = _mapFromJson[T];
     if (fromJsonFunction == null) {
-      return null;
+      throw ResponseException(400, {'error': '$T is not a DTO'});
     }
     return fromJsonFunction(json);
   }
 
-  Map<String, dynamic>? toJson<T>(T object) {
+  List<T> fromJsonList<T>(List<Map<String, dynamic>> json) {
+    return json.map((e) => fromJson<T>(e)!).toList();
+  }
+
+  Map<String, dynamic> toJson<T>(T object) {
     final ToJsonFunction<T>? toJsonFunction = _mapToJson[T];
     if (toJsonFunction == null) {
-      return null;
+      throw ResponseException(400, {'error': '$T is not a DTO'});
     }
     return toJsonFunction(object);
   }
 
   List<Map<String, dynamic>> toJsonList<T>(List<T> object) {
-    return object.map((e) => toJson<T>(e)!).toList();
+    return object.map((e) => toJson<T>(e)).toList();
   }
 
   Map<String, dynamic>? toOpenApi<T>() {

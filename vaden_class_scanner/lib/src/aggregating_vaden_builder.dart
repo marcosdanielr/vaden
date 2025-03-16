@@ -33,6 +33,10 @@ class AggregatingVadenBuilder implements Builder {
   final beanChecker = TypeChecker.fromRuntime(Bean);
   final bodyChecker = TypeChecker.fromRuntime(Body);
   final dtoChecker = TypeChecker.fromRuntime(DTO);
+
+  final controllerAdviceChecker = TypeChecker.fromRuntime(ControllerAdvice);
+  final exceptionHandlerChecker = TypeChecker.fromRuntime(ExceptionHandler);
+
   // documentation
   final apiChecker = TypeChecker.fromRuntime(Api);
   final apiOperationChecker = TypeChecker.fromRuntime(ApiOperation);
@@ -66,6 +70,7 @@ class AggregatingVadenBuilder implements Builder {
     final aggregatedBuffer = StringBuffer();
     final dtoBuffer = StringBuffer();
     final importsBuffer = StringBuffer();
+    final exceptionHandlerBuffer = StringBuffer();
 
     final importSet = <String>{};
 
@@ -89,7 +94,16 @@ class AggregatingVadenBuilder implements Builder {
     aggregatedBuffer.writeln('''
   Future<HttpServer> run() async {
     final pipeline = _injector.get<Pipeline>();
-    final handler = pipeline.addHandler(_router.call);
+    final handler = pipeline.addHandler((request) async {
+      try {
+        final response = await _router(request);
+        return response;
+      } catch (e, stack) {
+        print(e);
+        print(stack);
+        return _handleException(e);
+      }
+    });
 
     final settings = _injector.get<ApplicationSettings>();
     final port = settings['server']['port'] ?? 8080;
@@ -143,6 +157,8 @@ class AggregatingVadenBuilder implements Builder {
         bodyBuffer.writeln(_controllerSetup(classElement));
       } else if (dtoChecker.hasAnnotationOf(classElement)) {
         dtoBuffer.writeln(dtoSetup(classElement));
+      } else if (controllerAdviceChecker.hasAnnotationOf(classElement)) {
+        exceptionHandlerBuffer.writeln(_controllerAdviceSetup(classElement));
       }
 
       return bodyBuffer.toString();
@@ -160,6 +176,13 @@ class AggregatingVadenBuilder implements Builder {
 
 ''');
     aggregatedBuffer.writeln('  }');
+    aggregatedBuffer.writeln('''Future<Response> _handleException(dynamic e) async {
+
+    $exceptionHandlerBuffer
+
+    return Response.internalServerError(body: jsonEncode({'error': 'Internal server error'}));
+  }
+''');
     aggregatedBuffer.writeln('}');
 
     importsBuffer.writeln(importSet.map((uri) => "import '$uri';").join('\n'));
@@ -183,10 +206,39 @@ class _DSON extends DSON {
 }
 ''');
 
-    final formattedCode = formatter.format(importsBuffer.toString());
+    // final formattedCode = formatter.format(importsBuffer.toString());
 
     final outputId = _allFileOutput(buildStep);
-    await buildStep.writeAsString(outputId, formattedCode);
+    await buildStep.writeAsString(outputId, importsBuffer.toString());
+    // await buildStep.writeAsString(outputId, formattedCode);
+  }
+
+  String _controllerAdviceSetup(ClassElement classElement) {
+    final bodyBuffer = StringBuffer();
+
+    final methods = classElement.methods.where((method) {
+      return exceptionHandlerChecker.hasAnnotationOf(method);
+    }).toList();
+
+    if (methods.isEmpty) return '';
+
+    final instanceName = 'controllerAdvice${classElement.name}';
+    bodyBuffer.writeln('final $instanceName = _injector.get<${classElement.name}>();');
+
+    for (final method in methods) {
+      final exceptionHandler = exceptionHandlerChecker.firstAnnotationOf(method)!;
+      final exceptionType = exceptionHandler.getField('exceptionType')!.toTypeValue()!;
+      final exceptionTypeName = exceptionType.getDisplayString();
+
+      final isFuture = method.returnType.isDartAsyncFuture || method.returnType.isDartAsyncFutureOr;
+      bodyBuffer.writeln('''
+if (e is $exceptionTypeName) {
+  return ${isFuture ? 'await' : ''} $instanceName.${method.name}(e);
+}
+''');
+    }
+
+    return bodyBuffer.toString();
   }
 
   String _componentRegister(ClassElement classElement, bool registerWithInterfaceOrSuperType) {
@@ -310,7 +362,7 @@ ${bodyBuffer.toString()}
 
       final apiPathResolver = '$controllerPath$routePath'.replaceAll('<', '{').replaceAll('>', '}');
 
-      if (api != null) {
+      if (api != null && routerMethod != 'mount') {
         final convertSecurity = globalApiSecurity?.schemes.map((e) => "{'$e': []}").toList();
         final security = convertSecurity != null ? '[$convertSecurity]' : '<Map<String, dynamic>>[]';
 
@@ -456,8 +508,8 @@ paths['$apiPathResolver']['$routerMethod']['requestBody'] = {
 
           paramCodeList.add("""
 final bodyString = await request.readAsString();
-final json = jsonDecode(bodyString) as Map<String, dynamic>;
-final ${parameter.name} =  _injector.get<DSON>().fromJson<$typeName>(json) as dynamic;
+final bodyJson = jsonDecode(bodyString) as Map<String, dynamic>;
+final ${parameter.name} =  _injector.get<DSON>().fromJson<$typeName>(bodyJson) as dynamic;
 
 if (${parameter.name} == null) {
         return Response(
@@ -470,7 +522,7 @@ if (${parameter.name} is Validator<$typeName>) {
   final validator = ${parameter.name}.validate(ValidatorBuilder<$typeName>());
   final resultValidator = validator.validate(${parameter.name}  as $typeName);
   if (!resultValidator.isValid) {
-    return Response(400, body: jsonEncode(resultValidator.exceptionToJson()));
+    throw ResponseException<List<Map<String, dynamic>>>(400, resultValidator.exceptionToJson());
   }
 }
 """);
@@ -583,26 +635,21 @@ paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
           if (returnType.isDartCoreList) {
             final elementType = _extractListElementType(returnType);
             toJsonResponse = """
-          final json = _injector.get<DSON>().toJsonList<${elementType.getDisplayString()}>(result);
-          return Response.ok(jsonEncode(json), headers: {'Content-Type': 'application/json'});
+          final jsoResponse = _injector.get<DSON>().toJsonList<${elementType.getDisplayString()}>(result);
+          return Response.ok(jsonEncode(jsoResponse), headers: {'Content-Type': 'application/json'});
           """;
           } else {
             toJsonResponse = """
-          final json = _injector.get<DSON>().toJson<$display>(result);
-          return Response.ok(jsonEncode(json), headers: {'Content-Type': 'application/json'});
+          final jsoResponse = _injector.get<DSON>().toJson<$display>(result);
+          return Response.ok(jsonEncode(jsoResponse), headers: {'Content-Type': 'application/json'});
           """;
           }
         }
 
         bodyBuffer.writeln("""
- try {
    final result = ${isFuture ? 'await' : ''} ctrl.${method.name}($callParams);
   $toJsonResponse
- } on ResponseException catch (e) {
-   return e.response;
- } catch (e) {
-   return Response(500, body: jsonEncode({'error': 'Internal server error'}));
- }
+ 
 
 """);
       }

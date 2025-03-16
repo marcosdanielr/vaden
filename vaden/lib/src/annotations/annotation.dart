@@ -45,6 +45,19 @@ final class Controller implements BaseComponent {
   final bool registerWithInterfaceOrSuperType = false;
 }
 
+final class ControllerAdvice implements BaseComponent {
+  const ControllerAdvice();
+
+  @override
+  final bool registerWithInterfaceOrSuperType = false;
+}
+
+final class ExceptionHandler {
+  final Type exceptionType;
+
+  const ExceptionHandler(this.exceptionType);
+}
+
 final class DTO implements BaseComponent {
   const DTO();
 

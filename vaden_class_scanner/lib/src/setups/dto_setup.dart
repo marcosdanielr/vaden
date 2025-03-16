@@ -88,13 +88,19 @@ String _fromJson(ClassElement classElement) {
   for (final parameter in constructor.parameters) {
     final paramName = _getParameterName(parameter);
     final paramType = parameter.type.getDisplayString();
-    final nullSuffix = parameter.type.nullabilitySuffix == NullabilitySuffix.none ? '!' : '';
+    final isNotNull = parameter.type.nullabilitySuffix == NullabilitySuffix.none;
     var paramValue = '';
 
-    if (isPrimitive(parameter.type)) {
+    if (isPrimitiveListOrMap(parameter.type)) {
       paramValue = 'json[\'$paramName\']';
     } else {
-      paramValue = 'fromJson<$paramType>(json[\'$paramName\'])$nullSuffix';
+      if (parameter.type.isDartCoreList) {
+        final param = parameter.type as ParameterizedType;
+        final arg = param.typeArguments.first;
+        paramValue = isNotNull ? 'fromJsonList<$arg>(json[\'$paramName\'])' : 'json[\'$paramName\'] == null ? null : fromJsonList<$arg>(json[\'$paramName\'])';
+      } else {
+        paramValue = isNotNull ? 'fromJson<$paramType>(json[\'$paramName\'])' : 'json[\'$paramName\'] == null ? null : fromJson<$paramType>(json[\'$paramName\'])';
+      }
     }
 
     if (parameter.isNamed) {
@@ -142,10 +148,18 @@ String _toJsonField(FieldElement field) {
   final fieldKey = _getFieldName(field);
   final fieldName = field.name;
   final fieldTypeString = field.type.getDisplayString();
-  if (isPrimitive(field.type)) {
-    return "    '$fieldKey': obj.$fieldName,";
+  final isNotNull = field.type.nullabilitySuffix == NullabilitySuffix.none;
+
+  if (isPrimitiveListOrMap(field.type)) {
+    return "'$fieldKey': obj.$fieldName,";
   } else {
-    return "    '$fieldKey': toJson<$fieldTypeString>(obj.$fieldName)!,";
+    if (field.type.isDartCoreList) {
+      final param = field.type as ParameterizedType;
+      final arg = param.typeArguments.first;
+      return isNotNull ? " '$fieldKey': toJsonList<$arg>(obj.$fieldName)," : " '$fieldKey': obj.$fieldName == null ? null : toJsonList<$arg>(obj.$fieldName!),";
+    } else {
+      return isNotNull ? "'$fieldKey': toJson<$fieldTypeString>(obj.$fieldName)," : "'$fieldKey': obj.$fieldName == null ? null : toJson<$fieldTypeString>(obj.$fieldName!),";
+    }
   }
 }
 
@@ -153,6 +167,19 @@ bool isPrimitive(DartType type) {
   return type.isDartCoreInt || //
       type.isDartCoreDouble ||
       type.isDartCoreBool ||
-      type.isDartCoreObject ||
+      type.isDartCoreMap ||
       type.isDartCoreString;
+}
+
+bool isPrimitiveListOrMap(DartType type) {
+  if (type.isDartCoreList) {
+    final param = type as ParameterizedType;
+    final arg = param.typeArguments.first;
+
+    return isPrimitive(arg);
+  }
+  if (type.isDartCoreMap) {
+    return true;
+  }
+  return isPrimitive(type);
 }

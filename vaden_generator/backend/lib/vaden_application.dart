@@ -4,21 +4,22 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'package:vaden/vaden.dart';
 
-import 'package:backend/config/app_configuration.dart';
+import 'package:backend/config/resources/resource_controller.dart';
+import 'package:backend/config/resources/resource_configuration.dart';
 import 'package:backend/config/openapi/openapi_configuration.dart';
 import 'package:backend/config/openapi/openapi_controller.dart';
-import 'package:backend/config/resources/resource_configuration.dart';
-import 'package:backend/config/resources/resource_controller.dart';
+import 'package:backend/config/app_configuration.dart';
+import 'package:backend/src/core/files/file_manager.dart';
 import 'package:backend/src/controllers/generate_controller.dart';
 import 'package:backend/src/data/repositories/dependency_repository_impl.dart';
 import 'package:backend/src/data/services/generate_service_impl.dart';
+import 'package:backend/src/domain/dtos/project_link_dto.dart';
 import 'package:backend/src/domain/dtos/dependency_dto.dart';
 import 'package:backend/src/domain/dtos/project_dto.dart';
-import 'package:backend/src/domain/dtos/project_link_dto.dart';
-import 'package:backend/src/domain/usecases/create_project.dart';
 import 'package:backend/src/domain/usecases/get_dependencies.dart';
-import 'package:vaden/vaden.dart';
+import 'package:backend/src/domain/usecases/create_project.dart';
 
 class VadenApplication {
   final _router = Router();
@@ -29,7 +30,16 @@ class VadenApplication {
 
   Future<HttpServer> run() async {
     final pipeline = _injector.get<Pipeline>();
-    final handler = pipeline.addHandler(_router.call);
+    final handler = pipeline.addHandler((request) async {
+      try {
+        final response = await _router(request);
+        return response;
+      } catch (e, stack) {
+        print(e);
+        print(stack);
+        return _handleException(e);
+      }
+    });
 
     final settings = _injector.get<ApplicationSettings>();
     final port = settings['server']['port'] ?? 8080;
@@ -57,6 +67,27 @@ class VadenApplication {
       '/public',
       pipelineResourceControllergetResources.addHandler(
         handlerResourceControllergetResources,
+      ),
+    );
+    var pipelineResourceControllergetUploads = const Pipeline();
+    final handlerResourceControllergetUploads = (Request request) async {
+      if (request.params['path'] == null) {
+        return Response(
+          400,
+          body: jsonEncode({'error': 'Invalid parameter (path)'}),
+        );
+      }
+      final path = request.params['path']!;
+
+      final filename = request.url.queryParameters['filename'];
+      final ctrl = _injector.get<ResourceController>();
+      final result = await ctrl.getUploads(request, path, filename);
+      return result;
+    };
+    routerResourceController.get(
+      '/uploads/<filename>',
+      pipelineResourceControllergetUploads.addHandler(
+        handlerResourceControllergetUploads,
       ),
     );
     _router.mount('/resource', routerResourceController.call);
@@ -94,6 +125,8 @@ class VadenApplication {
     _injector.addLazySingleton(configurationAppConfiguration.settings);
     _injector.addLazySingleton(configurationAppConfiguration.globalMiddleware);
 
+    _injector.addLazySingleton(FileManager.new);
+
     _injector.addLazySingleton(GenerateController.new);
     apis.add(const Api(tag: 'Generate', description: 'Generate a new project'));
     final routerGenerateController = Router();
@@ -109,18 +142,21 @@ class VadenApplication {
     };
 
     paths['/v1/generate/dependencies']['get']['summary'] = 'Get dependencies';
-    paths['/v1/generate/dependencies']['get']['description'] = 'Get all dependencies';
+    paths['/v1/generate/dependencies']['get']['description'] =
+        'Get all dependencies';
     paths['/v1/generate/dependencies']['get']['responses']['200'] = {
       'description': 'Dependencies returned',
       'content': <String, dynamic>{},
     };
 
-    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json'] = <String, dynamic>{};
+    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json'] =
+        <String, dynamic>{};
 
-    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json']['schema'] = {
-      'type': 'array',
-      'items': {'\$ref': '#/components/schemas/DependencyDTO'},
-    };
+    paths['/v1/generate/dependencies']['get']['responses']['200']['content']['application/json']['schema'] =
+        {
+          'type': 'array',
+          'items': {'\$ref': '#/components/schemas/DependencyDTO'},
+        };
 
     var pipelineGenerateControllergetDependencies = const Pipeline();
     final handlerGenerateControllergetDependencies = (Request request) async {
@@ -128,9 +164,12 @@ class VadenApplication {
       try {
         final result = await ctrl.getDependencies();
         final json = _injector.get<DSON>().toJsonList<DependencyDTO>(result);
-        return Response.ok(jsonEncode(json));
+        return Response.ok(
+          jsonEncode(json),
+          headers: {'Content-Type': 'application/json'},
+        );
       } on ResponseException catch (e) {
-        return e.response;
+        return e.generateResponse(_injector.get<DSON>());
       } catch (e) {
         return Response(
           500,
@@ -162,9 +201,11 @@ class VadenApplication {
       'content': <String, dynamic>{},
     };
 
-    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json'] = <String, dynamic>{};
+    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json'] =
+        <String, dynamic>{};
 
-    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json']['schema'] = {'\$ref': '#/components/schemas/ProjectLinkDTO'};
+    paths['/v1/generate/create']['get']['responses']['200']['content']['application/json']['schema'] =
+        {'\$ref': '#/components/schemas/ProjectLinkDTO'};
 
     var pipelineGenerateControllercreate = const Pipeline();
     paths['/v1/generate/create']['get']['requestBody'] = {
@@ -203,9 +244,12 @@ class VadenApplication {
       try {
         final result = await ctrl.create(dto);
         final json = _injector.get<DSON>().toJson<ProjectLinkDTO>(result);
-        return Response.ok(jsonEncode(json));
+        return Response.ok(
+          jsonEncode(json),
+          headers: {'Content-Type': 'application/json'},
+        );
       } on ResponseException catch (e) {
-        return e.response;
+        return e.generateResponse(_injector.get<DSON>());
       } catch (e) {
         return Response(
           500,
@@ -256,7 +300,8 @@ class _DSON extends DSON {
     Map<Type, FromJsonFunction>,
     Map<Type, ToJsonFunction>,
     Map<Type, ToOpenApiNormalMap>,
-  ) getMaps() {
+  )
+  getMaps() {
     final fromJsonMap = <Type, FromJsonFunction>{};
     final toJsonMap = <Type, ToJsonFunction>{};
     final toOpenApiMap = <Type, ToOpenApiNormalMap>{};
@@ -299,7 +344,7 @@ class _DSON extends DSON {
 
     fromJsonMap[ProjectDTO] = (Map<String, dynamic> json) {
       return ProjectDTO(
-        dependencies: fromJson<List<DependencyDTO>>(json['dependencies'])!,
+        dependencies: fromJsonList<DependencyDTO>(json['dependencies']),
         projectName: json['projectName'],
         projectDescription: json['projectDescription'],
         dartVersion: json['dartVersion'],
@@ -308,7 +353,7 @@ class _DSON extends DSON {
     toJsonMap[ProjectDTO] = (object) {
       final obj = object as ProjectDTO;
       return {
-        'dependencies': toJson<List<DependencyDTO>>(obj.dependencies)!,
+        'dependencies': toJsonList<DependencyDTO>(obj.dependencies),
         'projectName': obj.projectName,
         'projectDescription': obj.projectDescription,
         'dartVersion': obj.dartVersion,
@@ -332,4 +377,10 @@ class _DSON extends DSON {
 
     return (fromJsonMap, toJsonMap, toOpenApiMap);
   }
+}
+
+Response _handleException(dynamic e) {
+  return Response.internalServerError(
+    body: jsonEncode({'error': 'Internal server error'}),
+  );
 }
