@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:mime/mime.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vaden/vaden.dart';
 
@@ -31,5 +32,9 @@ abstract class Storage {
       default:
         return LocalStorage(settings['storage']['provider']);
     }
+  }
+
+  String getMimeType(String filePath) {
+    return lookupMimeType(filePath) ?? 'application/octet-stream';
   }
 }

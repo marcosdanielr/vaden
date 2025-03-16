@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:backend/src/domain/dtos/project_dto.dart';
 import 'package:backend/src/domain/dtos/project_link_dto.dart';
 import 'package:backend/src/domain/services/generate_service.dart';
@@ -12,8 +14,9 @@ class CreateProject {
 
   AsyncResult<ProjectLinkDTO> call(ProjectDTO dto) async {
     final project = dto.toProject();
+    final temp = Directory('temp');
     return _generateService //
-        .createTempProject(project)
+        .createTempProject(project, temp)
         .flatMap(_generateService.addDependencies)
         .flatMap(_generateService.createZipLink);
   }
