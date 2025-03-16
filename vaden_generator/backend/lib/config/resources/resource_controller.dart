@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:vaden/vaden.dart';
 
+@Api(tag: 'resource')
 @Controller('/resource')
 class ResourceController {
   final ResourceService resource;
@@ -17,18 +19,34 @@ class ResourceController {
   @Get('/uploads/<filename>')
   FutureOr<Response> getUploads(
     Request request,
-    @Param('path') String path,
-    @Query('filename') String? filename,
+    @Param() String filename,
+    @Query() String? name,
   ) async {
-    final bytes = await storage.download(path);
-    final mimetype = storage.getMimeType(path);
+    final bytes = await storage.download(filename);
+    final mimetype = storage.getMimeType(filename);
 
     return Response.ok(
       bytes,
       headers: {
         'Content-Type': mimetype,
-        'Content-Disposition': 'attachment; filename="${filename ?? path}.zip"',
+        'Content-Disposition': 'attachment; filename="${name ?? filename}"',
       },
     );
+  }
+
+  @Post('/uploads')
+  FutureOr<Response> uploadFile(Request request) async {
+    if (request.multipart() case var multipart?) {
+      final links = <Map<String, String>>[];
+      await for (final part in multipart.parts) {
+        final headers = part.headers;
+        final fileName = headers['content-disposition']!.split('filename=')[1].trim();
+        final link = await storage.upload(fileName, await part.readBytes());
+        links.add({'filename': fileName, 'link': link});
+      }
+
+      return Response.ok(jsonEncode({'message': 'File uploaded'}));
+    }
+    return Response(400, body: jsonEncode({'error': 'No file uploaded'}));
   }
 }

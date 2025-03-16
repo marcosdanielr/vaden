@@ -1,0 +1,6 @@
+targets:
+  $default:
+    builders:
+      vaden_gen|aggregating_vaden_builder:
+        enabled: true
+

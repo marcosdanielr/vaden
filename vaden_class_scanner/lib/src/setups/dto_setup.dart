@@ -72,6 +72,11 @@ String _fieldToSchema(DartType type) {
     return '{"type": "boolean"}';
   } else if (type.isDartCoreString) {
     return '{"type": "string"}';
+  } else if (type.isDartCoreList) {
+    final elementType = (type as ParameterizedType).typeArguments.first;
+    final elementSchema = _fieldToSchema(elementType);
+
+    return '{"type": "array", "items": $elementSchema}';
   } else {
     final typeName = type.getDisplayString();
     return '{r"\$ref": "#/components/schemas/$typeName"}';

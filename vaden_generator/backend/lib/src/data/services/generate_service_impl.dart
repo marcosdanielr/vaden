@@ -35,7 +35,7 @@ class GenerateServiceImpl implements GenerateService {
     final tempDir = Directory(project.path);
 
     for (var dependency in project.dependencies) {
-      await fileManager.getGenerator(dependency.tag).generate(
+      await fileManager.getGenerator(dependency.key).generate(
         fileManager,
         tempDir,
         variables: {

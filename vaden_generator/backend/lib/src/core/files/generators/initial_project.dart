@@ -62,6 +62,10 @@ class InitialProjectGenerator extends FileGenerator {
     final srcHelloController = File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}src${Platform.pathSeparator}hello_controller.dart');
     await srcHelloController.create(recursive: true);
     await srcHelloController.writeAsString(_srcHelloControllerContent);
+
+    final libConfigAppControllerAdvice = File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}config${Platform.pathSeparator}app_controller_advice.dart');
+    await libConfigAppControllerAdvice.create(recursive: true);
+    await libConfigAppControllerAdvice.writeAsString(_libConfigAppControllerAdviceContent);
   }
 }
 
@@ -248,3 +252,27 @@ class HelloController {
 }
 
 ''';
+
+const _libConfigAppControllerAdviceContent = '''import 'dart:convert';
+
+import 'package:vaden/vaden.dart';
+
+@ControllerAdvice()
+class AppControllerAdvice {
+  final DSON _dson;
+  AppControllerAdvice(this._dson);
+
+  @ExceptionHandler(ResponseException)
+  Future<Response> handleResponseException(ResponseException e) async {
+    return e.generateResponse(_dson);
+  }
+
+  @ExceptionHandler(Exception)
+  Response handleException(Exception e) {
+    return Response.internalServerError(
+      body: jsonEncode({
+        'message': 'Internal server error',
+      }),
+    );
+  }
+}''';

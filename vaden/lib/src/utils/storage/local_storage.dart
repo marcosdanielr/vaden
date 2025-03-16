@@ -13,7 +13,7 @@ class LocalStorage extends Storage {
     final file = File('$folderPath/$uniqueName');
     await file.create(recursive: true);
     await file.writeAsBytes(bytes);
-    return file.path;
+    return uniqueName;
   }
 
   @override

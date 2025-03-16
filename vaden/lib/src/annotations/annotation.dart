@@ -85,14 +85,14 @@ class UseGuards {
 }
 
 class Query {
-  final String name;
-  const Query(this.name);
+  final String? name;
+  const Query([this.name]);
 }
 
 class Param {
-  final String name;
+  final String? name;
 
-  const Param(this.name);
+  const Param([this.name]);
 }
 
 class Body {

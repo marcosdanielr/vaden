@@ -7,6 +7,7 @@ export 'package:auto_injector/auto_injector.dart' hide Param;
 export 'package:lucid_validation/lucid_validation.dart';
 export 'package:shelf/shelf.dart';
 export 'package:shelf/shelf_io.dart';
+export 'package:shelf_multipart/shelf_multipart.dart';
 export 'package:shelf_router/shelf_router.dart';
 
 export 'src/annotations/annotation.dart';

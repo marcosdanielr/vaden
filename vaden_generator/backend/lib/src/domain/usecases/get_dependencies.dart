@@ -1,4 +1,4 @@
-import 'package:backend/src/domain/dtos/dependency_dto.dart';
+import 'package:backend/src/domain/entities/dependency.dart';
 import 'package:backend/src/domain/repositories/dependency_repository.dart';
 import 'package:result_dart/result_dart.dart';
 import 'package:vaden/vaden.dart';
@@ -9,8 +9,7 @@ class GetDependencies {
 
   GetDependencies(this._generateRepository);
 
-  AsyncResult<List<DependencyDTO>> call() async {
-    final dependencies = await _generateRepository.getDependencies();
-    return dependencies.map(DependencyDTO.fromDependencies);
+  AsyncResult<List<Dependency>> call() async {
+    return await _generateRepository.getDependencies();
   }
 }

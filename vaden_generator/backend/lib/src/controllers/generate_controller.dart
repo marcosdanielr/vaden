@@ -1,6 +1,6 @@
-import 'package:backend/src/domain/dtos/dependency_dto.dart';
-import 'package:backend/src/domain/dtos/project_dto.dart';
 import 'package:backend/src/domain/dtos/project_link_dto.dart';
+import 'package:backend/src/domain/entities/dependency.dart';
+import 'package:backend/src/domain/entities/project.dart';
 import 'package:backend/src/domain/usecases/create_project.dart';
 import 'package:backend/src/domain/usecases/get_dependencies.dart';
 import 'package:result_dart/result_dart.dart';
@@ -18,10 +18,10 @@ class GenerateController {
   @ApiResponse(
     200,
     description: 'Dependencies returned',
-    content: ApiContent(type: 'application/json', schema: List<DependencyDTO>),
+    content: ApiContent(type: 'application/json', schema: List<Dependency>),
   )
   @Get('/dependencies')
-  Future<List<DependencyDTO>> getDependencies() async {
+  Future<List<Dependency>> getDependencies() async {
     return await _getDependencies().getOrThrow();
   }
 
@@ -31,8 +31,8 @@ class GenerateController {
     description: 'Return Link to download zip project',
     content: ApiContent(type: 'application/json', schema: ProjectLinkDTO),
   )
-  @Get('/create')
-  Future<ProjectLinkDTO> create(@Body() ProjectDTO dto) async {
+  @Post('/create')
+  Future<ProjectLinkDTO> create(@Body() Project dto) async {
     return await _createProject.call(dto).getOrThrow();
   }
 }

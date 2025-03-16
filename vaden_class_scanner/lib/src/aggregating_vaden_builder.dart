@@ -209,8 +209,8 @@ class _DSON extends DSON {
     final formattedCode = formatter.format(importsBuffer.toString());
 
     final outputId = _allFileOutput(buildStep);
-    // await buildStep.writeAsString(outputId, importsBuffer.toString());
     await buildStep.writeAsString(outputId, formattedCode);
+    //await buildStep.writeAsString(outputId, importsBuffer.toString());
   }
 
   String _controllerAdviceSetup(ClassElement classElement) {
@@ -528,13 +528,14 @@ if (${parameter.name} is Validator<$typeName>) {
 """);
         } else if (paramChecker.hasAnnotationOf(parameter)) {
           final pname = paramChecker.firstAnnotationOf(parameter)?.getField('name')?.toStringValue() ?? parameter.name;
+          final isNotNull = !_isNullable(parameter.type);
 
           if (api != null) {
             bodyBuffer.writeln("""
 paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
   'name': '$pname',
   'in': 'path',
-  'required': ${!_isNullable(parameter.type)},
+  'required': $isNotNull,
   'schema': {
     'type': 'string',
   },
@@ -542,28 +543,44 @@ paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
 """);
           }
 
-          paramCodeList.add("""
+          if (isNotNull) {
+            paramCodeList.add("""
   if (request.params['$pname'] == null) {
-    return Response(400, body: jsonEncode({'error': 'Invalid parameter ($pname)'}));
+    return Response(400, body: jsonEncode({'error': 'Path Param is required ($pname)'}));
   }
   final ${parameter.name} = request.params['$pname']!;
 
 """);
+          } else {
+            paramCodeList.add("final ${parameter.name} = request.params['$pname'];");
+          }
         } else if (queryChecker.hasAnnotationOf(parameter)) {
           final qname = queryChecker.firstAnnotationOf(parameter)?.getField('name')?.toStringValue() ?? parameter.name;
+          final isNotNull = !_isNullable(parameter.type);
+
           if (api != null) {
             bodyBuffer.writeln("""
 paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
   'name': '$qname',
-  'in': 'path',
-  'required': ${!_isNullable(parameter.type)},
+  'in': 'query',
+  'required': $isNotNull,
   'schema': {
     'type': 'string',
   },
 });
 """);
           }
-          paramCodeList.add("final ${parameter.name} = request.url.queryParameters['$qname'];");
+          if (isNotNull) {
+            paramCodeList.add("""
+  if (request.url.queryParameters['$qname'] == null) {
+    return Response(400, body: jsonEncode({'error': 'Query param is required ($qname)'}));
+  }
+  final ${parameter.name} = request.url.queryParameters['$qname']!;
+
+""");
+          } else {
+            paramCodeList.add("final ${parameter.name} = request.url.queryParameters['$qname'];");
+          }
         } else if (headerChecker.hasAnnotationOf(parameter)) {
           final hname = headerChecker.firstAnnotationOf(parameter)?.getField('name')?.toStringValue() ?? parameter.name;
           if (api != null) {

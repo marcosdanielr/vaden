@@ -34,7 +34,7 @@ abstract class DSON {
     return fromJsonFunction(json);
   }
 
-  List<T> fromJsonList<T>(List<Map<String, dynamic>> json) {
+  List<T> fromJsonList<T>(List json) {
     return json.map((e) => fromJson<T>(e)!).toList();
   }
 
