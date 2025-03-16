@@ -558,19 +558,46 @@ paths['$apiPathResolver']['$routerMethod']['parameters']?.add({
   return result;
 """);
       } else {
-        var toJson = "  final json = _injector.get<DSON>().toJson<${returnType.getDisplayString()}>(result);";
-        if (returnType.isDartCoreList) {
-          final elementType = _extractListElementType(returnType);
-          toJson = "  final json = _injector.get<DSON>().toJsonList<${elementType.getDisplayString()}>(result);";
-        } else if (returnType.isDartCoreMap) {
-          toJson = "  final json = result;";
+        final display = returnType.getDisplayString();
+        late final String toJsonResponse;
+        if (display == 'String') {
+          toJsonResponse = """
+          return Response.ok(result, headers: {'Content-Type': 'text/plain'});
+          """;
+        } else if (display == 'List<int>') {
+          toJsonResponse = """
+          return Response.ok(result, headers: {'Content-Type': 'application/octet-stream'});
+          """;
+        } else if ([
+          'Map<String, dynamic>',
+          'Map<String, Object>',
+          'Map<String, String>',
+          'List<Map<String, dynamic>>',
+          'List<Map<String, Object>>',
+          'List<Map<String, String>>',
+        ].contains(display)) {
+          toJsonResponse = """
+          return Response.ok(jsonEncode(result), headers: {'Content-Type': 'application/json'});
+          """;
+        } else {
+          if (returnType.isDartCoreList) {
+            final elementType = _extractListElementType(returnType);
+            toJsonResponse = """
+          final json = _injector.get<DSON>().toJsonList<${elementType.getDisplayString()}>(result);
+          return Response.ok(jsonEncode(json), headers: {'Content-Type': 'application/json'});
+          """;
+          } else {
+            toJsonResponse = """
+          final json = _injector.get<DSON>().toJson<$display>(result);
+          return Response.ok(jsonEncode(json), headers: {'Content-Type': 'application/json'});
+          """;
+          }
         }
 
         bodyBuffer.writeln("""
  try {
    final result = ${isFuture ? 'await' : ''} ctrl.${method.name}($callParams);
-  $toJson
-  return Response.ok(jsonEncode(json));
+  $toJsonResponse
  } on ResponseException catch (e) {
    return e.response;
  } catch (e) {
