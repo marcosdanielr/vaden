@@ -206,11 +206,11 @@ class _DSON extends DSON {
 }
 ''');
 
-    // final formattedCode = formatter.format(importsBuffer.toString());
+    final formattedCode = formatter.format(importsBuffer.toString());
 
     final outputId = _allFileOutput(buildStep);
-    await buildStep.writeAsString(outputId, importsBuffer.toString());
-    // await buildStep.writeAsString(outputId, formattedCode);
+    // await buildStep.writeAsString(outputId, importsBuffer.toString());
+    await buildStep.writeAsString(outputId, formattedCode);
   }
 
   String _controllerAdviceSetup(ClassElement classElement) {
