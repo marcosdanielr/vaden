@@ -1,0 +1,46 @@
+import 'package:analyzer/dart/element/element.dart';
+import 'package:source_gen/source_gen.dart';
+import 'package:vaden/vaden.dart';
+
+final beanChecker = TypeChecker.fromRuntime(Bean);
+final configurationChecker = TypeChecker.fromRuntime(Configuration);
+
+String configurationSetup(ClassElement classElement) {
+  final bodyBuffer = StringBuffer();
+
+  final instanceName = 'configuration${classElement.name}';
+
+  for (final method in classElement.methods) {
+    if (beanChecker.hasAnnotationOf(method)) {
+      if (method.returnType.isDartAsyncFuture) {
+        final parametersCode = method.parameters.map((param) {
+          if (param.isNamed) {
+            return '${param.name}: _injector()';
+          }
+          return '_injector()';
+        }).join(', ');
+
+        bodyBuffer.writeln('''
+asyncBeans.add(() async {
+final result = await $instanceName.${method.name}($parametersCode);
+ _injector.uncommit();
+_injector.addInstance(result);
+ _injector.commit();
+});
+
+''');
+      } else {
+        bodyBuffer.writeln('    _injector.addLazySingleton($instanceName.${method.name});');
+      }
+    }
+  }
+
+  if (bodyBuffer.isNotEmpty) {
+    return '''final $instanceName = ${classElement.name}();
+
+${bodyBuffer.toString()}
+''';
+  }
+
+  return '';
+}
