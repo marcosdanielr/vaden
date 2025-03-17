@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/config/dependencies.dart';
-import 'package:frontend/ui/core/themes/theme.dart';
-import 'package:frontend/ui/generate/generate_page.dart';
+import 'config/dependencies.dart';
+import 'ui/core/themes/theme.dart';
+import 'ui/generate/generate_page.dart';
 
 void main() {
   setupInjection();
@@ -14,7 +14,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Vaden generator',
       themeMode: ThemeMode.system,
       theme: lightTheme,
       darkTheme: dartTheme,
