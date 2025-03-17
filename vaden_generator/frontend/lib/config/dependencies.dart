@@ -1,5 +1,5 @@
 import 'package:auto_injector/auto_injector.dart';
-import 'package:frontend/ui/generate/viewmodels/generate_viewmodel.dart';
+import '../ui/generate/viewmodels/generate_viewmodel.dart';
 
 final injector = AutoInjector();
 

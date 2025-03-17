@@ -1,4 +1,4 @@
-import 'package:frontend/domain/dtos/dependency_dto.dart';
+import 'dependency_dto.dart';
 
 class ProjectDto {
   String _name;
