@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-class AppColors {
+class VadenColors {
   // Main Colors
   static const Color primaryColor = Color(0xFF111111);
   static const Color primaryColor2 = Color(0xFF222222);
