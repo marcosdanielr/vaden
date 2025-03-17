@@ -1,21 +1,23 @@
-// ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'dart:convert';
 
 class DependencyDTO {
   final String name;
-  final String version;
+  final String description;
+  final String key;
   final String tag;
 
   DependencyDTO({
     required this.name,
-    required this.version,
+    required this.description,
+    required this.key,
     required this.tag,
   });
 
   Map<String, dynamic> toMap() {
     return <String, dynamic>{
       'name': name,
-      'version': version,
+      'description': description,
+      'key': key,
       'tag': tag,
     };
   }
@@ -23,12 +25,14 @@ class DependencyDTO {
   factory DependencyDTO.fromMap(Map<String, dynamic> map) {
     return DependencyDTO(
       name: map['name'] as String,
-      version: map['version'] as String,
+      description: map['description'] as String,
+      key: map['key'] as String,
       tag: map['tag'] as String,
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory DependencyDTO.fromJson(String source) => DependencyDTO.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory DependencyDTO.fromJson(String source) =>
+      DependencyDTO.fromMap(json.decode(source) as Map<String, dynamic>);
 }
