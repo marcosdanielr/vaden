@@ -18,7 +18,6 @@ class VadenTextInput extends StatefulWidget {
   final AutovalidateMode? autovalidateMode;
   final Widget? prefixIcon;
   final TextStyle? labelStyle;
-  final bool darkMode;
   final bool hasError;
   final List<TextInputFormatter>? inputFormatters;
   final bool isEnabled;
@@ -38,7 +37,6 @@ class VadenTextInput extends StatefulWidget {
     this.textInputType = TextInputType.text,
     this.prefixIcon,
     this.labelStyle,
-    this.darkMode = false,
     this.hasError = false,
     this.inputFormatters,
     this.isEnabled = true,
