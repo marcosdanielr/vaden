@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 
 import '../ui/core/ui/ui.dart';
+import '../ui/core/ui/cards/vaden_dependencies_selector.dart' as dependencies;
 
 class UiExamples extends StatefulWidget {
   const UiExamples({super.key});
@@ -15,7 +16,6 @@ class _UiExamplesState extends State<UiExamples> {
   String? _selectedVersion;
   bool _isLoading = false;
 
-  // Em vez de uma variável booleana, use uma string para identificar o card selecionado
   String? _selectedCard;
 
   void _toggleLoading() {
@@ -24,14 +24,11 @@ class _UiExamplesState extends State<UiExamples> {
     });
   }
 
-  // Função modificada para selecionar um card específico
   void _selectCard(String cardId) {
     setState(() {
       if (_selectedCard == cardId) {
-        // Se o mesmo card já está selecionado, deseleciona
         _selectedCard = null;
       } else {
-        // Caso contrário, seleciona este card
         _selectedCard = cardId;
       }
     });
@@ -173,7 +170,16 @@ class _UiExamplesState extends State<UiExamples> {
                   // Faça algo com a seleção de idioma
                   log('Idioma alterado para: $language');
                 },
-              )
+              ),
+              const SizedBox(height: 16),
+              VadenDependenciesSelector(
+                initialLanguage: dependencies.Language.devTools,
+                onLanguageChanged: (language) {
+                  // Faça algo com a seleção de dependência
+                  log('Dependência alterada para: $language');
+                },
+              ),
+              const SizedBox(height: 80),
             ],
           ),
         ),
