@@ -1,5 +1,10 @@
 import 'package:dio/dio.dart';
+import 'package:frontend/config/constants.dart';
 import 'package:result_dart/result_dart.dart';
+
+Dio dioFactory(Constants constants) {
+  return Dio(BaseOptions(baseUrl: constants.urlBase));
+}
 
 class ClientHttp {
   final Dio _dio;
@@ -7,7 +12,6 @@ class ClientHttp {
   ClientHttp(this._dio);
 
   AsyncResult<ClientResponse> get(ClientRequest request) async {
-    _dio.options.baseUrl = const String.fromEnvironment('BASE_URL');
     try {
       final response =
           await _dio.get(request.path, options: Options(headers: request.data));
@@ -23,7 +27,6 @@ class ClientHttp {
   }
 
   AsyncResult<ClientResponse> post(ClientRequest request) async {
-    _dio.options.baseUrl = const String.fromEnvironment('BASE_URL');
     try {
       final response = await _dio.post(
         request.path,
