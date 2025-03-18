@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../themes/colors.dart';
 
-class DartVersionDropdown extends StatefulWidget {
+class VadenDropdownButton extends StatefulWidget {
   final bool isEnabled;
   final List<String> versions;
   final String? selectedVersion;
   final Function(String)? onVersionSelected;
 
-  const DartVersionDropdown({
+  const VadenDropdownButton({
     super.key,
     this.isEnabled = true,
     required this.versions,
@@ -17,10 +17,10 @@ class DartVersionDropdown extends StatefulWidget {
   });
 
   @override
-  State<DartVersionDropdown> createState() => _DartVersionDropdownState();
+  State<VadenDropdownButton> createState() => _VadenDropdownButtonState();
 }
 
-class _DartVersionDropdownState extends State<DartVersionDropdown> {
+class _VadenDropdownButtonState extends State<VadenDropdownButton> {
   bool _isDropdownOpen = false;
 
   void _toggleDropdown() {
