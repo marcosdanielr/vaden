@@ -1,9 +1,6 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 
 import '../ui/core/ui/ui.dart';
-import '../ui/core/ui/cards/vaden_dependencies_selector.dart' as dependencies;
 
 class UiExamples extends StatefulWidget {
   const UiExamples({super.key});
@@ -14,6 +11,8 @@ class UiExamples extends StatefulWidget {
 
 class _UiExamplesState extends State<UiExamples> {
   String? _selectedVersion;
+  String? _selectedLanguage;
+  String? _selectedOptions;
   bool _isLoading = false;
 
   String? _selectedCard;
@@ -44,6 +43,15 @@ class _UiExamplesState extends State<UiExamples> {
     '3.1.0',
   ];
 
+  final List<String> _languages = [
+    'Portugues',
+    'English',
+  ];
+
+  final List<String> _dependenciesOptions = [
+    'Dev Tools',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,10 +66,11 @@ class _UiExamplesState extends State<UiExamples> {
                 hint: 'Enter project name',
               ),
               const SizedBox(height: 8),
-              DartVersionDropdown(
-                versions: _dartVersions,
-                selectedVersion: _selectedVersion,
-                onVersionSelected: (version) {
+              VadenDropdown(
+                title: 'Dart Version',
+                options: _dartVersions,
+                placeholder: _selectedVersion ?? 'Select a Dart Version',
+                onOptionSelected: (version) {
                   setState(() {
                     _selectedVersion = version;
                   });
@@ -138,7 +147,7 @@ class _UiExamplesState extends State<UiExamples> {
               VadenCard(
                 title: 'Card',
                 subtitle: 'Subtitle',
-                tag: 'Dev tools',
+                // tag: 'Dev tools',
                 isSelected: _selectedCard == 'card',
                 onTap: () => _selectCard('card'),
               ),
@@ -164,19 +173,25 @@ class _UiExamplesState extends State<UiExamples> {
                 isSelected: _selectedCard == 'marven-groovy',
               ),
               const SizedBox(height: 16),
-              VadenLanguageSelector(
-                initialLanguage: Language.portuguese,
-                onLanguageChanged: (language) {
-                  // Faça algo com a seleção de idioma
-                  log('Idioma alterado para: $language');
+              VadenDropdown(
+                options: _languages,
+                placeholder: _selectedLanguage ?? 'Portugues',
+                selectedOption: _selectedLanguage,
+                onOptionSelected: (language) {
+                  setState(() {
+                    _selectedLanguage = language;
+                  });
                 },
               ),
               const SizedBox(height: 16),
-              VadenDependenciesSelector(
-                initialLanguage: dependencies.Language.devTools,
-                onLanguageChanged: (language) {
-                  // Faça algo com a seleção de dependência
-                  log('Dependência alterada para: $language');
+              VadenDropdown(
+                options: _dependenciesOptions,
+                placeholder: _selectedOptions ?? 'DevTools',
+                selectedOption: _selectedOptions,
+                onOptionSelected: (options) {
+                  setState(() {
+                    _selectedOptions = options;
+                  });
                 },
               ),
               const SizedBox(height: 80),
