@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-class DependencyDTO {
+class Dependency {
   final String name;
   final String description;
   final String key;
   final String tag;
 
-  DependencyDTO({
+  Dependency({
     required this.name,
     required this.description,
     required this.key,
@@ -22,8 +22,8 @@ class DependencyDTO {
     };
   }
 
-  factory DependencyDTO.fromMap(Map<String, dynamic> map) {
-    return DependencyDTO(
+  factory Dependency.fromMap(Map<String, dynamic> map) {
+    return Dependency(
       name: map['name'] as String,
       description: map['description'] as String,
       key: map['key'] as String,
@@ -33,6 +33,6 @@ class DependencyDTO {
 
   String toJson() => json.encode(toMap());
 
-  factory DependencyDTO.fromJson(String source) =>
-      DependencyDTO.fromMap(json.decode(source) as Map<String, dynamic>);
+  factory Dependency.fromJson(String source) =>
+      Dependency.fromMap(json.decode(source) as Map<String, dynamic>);
 }
