@@ -4,8 +4,8 @@ IMAGE_NAME="jacobmoura7/vaden-generator-backend"
 
 echo "🚀 Iniciando o build da imagem Docker para múltiplas arquiteturas..."
 
-docker buildx create --use || true
-docker buildx inspect --bootstrap
+# docker buildx create --use || true
+# docker buildx inspect --bootstrap
 
 PLATFORMS="linux/amd64,linux/arm64"
 
