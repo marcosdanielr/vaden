@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'config/dependencies.dart';
+import 'example/ui_examples.dart';
 import 'ui/core/themes/theme.dart';
-import 'ui/generate/generate_page.dart';
+// import 'ui/generate/generate_page.dart';
 
 void main() {
   setupInjection();
@@ -18,7 +19,7 @@ class MainApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       theme: lightTheme,
       darkTheme: dartTheme,
-      home: const GeneratePage(),
+      home: const UiExamples(),
     );
   }
 }
