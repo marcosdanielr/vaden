@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import '../../themes/colors.dart';
 
-enum Language {
+enum Options {
   devTools,
 }
 
 class VadenDependenciesSelector extends StatefulWidget {
-  final Language initialLanguage;
-  final Function(Language)? onLanguageChanged;
+  final Options initialLanguage;
+  final Function(Options)? onLanguageChanged;
 
   const VadenDependenciesSelector({
     super.key,
-    this.initialLanguage = Language.devTools,
+    this.initialLanguage = Options.devTools,
     this.onLanguageChanged,
   });
 
@@ -20,7 +20,7 @@ class VadenDependenciesSelector extends StatefulWidget {
 }
 
 class _VadenDependenciesSelectorState extends State<VadenDependenciesSelector> {
-  late Language _selectedLanguage;
+  late Options _selectedLanguage;
   bool _isOpen = false;
 
   @override
@@ -29,7 +29,7 @@ class _VadenDependenciesSelectorState extends State<VadenDependenciesSelector> {
     _selectedLanguage = widget.initialLanguage;
   }
 
-  void _changeLanguage(Language language) {
+  void _changeLanguage(Options language) {
     setState(() {
       _selectedLanguage = language;
     });
@@ -39,9 +39,9 @@ class _VadenDependenciesSelectorState extends State<VadenDependenciesSelector> {
     }
   }
 
-  String _getLanguageText(Language language) {
+  String _getLanguageText(Options language) {
     switch (language) {
-      case Language.devTools:
+      case Options.devTools:
         return 'Dev Tools';
     }
   }
@@ -127,7 +127,7 @@ class _VadenDependenciesSelectorState extends State<VadenDependenciesSelector> {
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: Language.values.map((language) {
+                children: Options.values.map((language) {
                   final isSelected = _selectedLanguage == language;
                   return InkWell(
                     onTap: () => _changeLanguage(language),
