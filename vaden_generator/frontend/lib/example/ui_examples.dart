@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import '../ui/core/ui/ui.dart';
@@ -164,6 +166,14 @@ class _UiExamplesState extends State<UiExamples> {
                 onTap: () => _selectCard('marven-groovy'),
                 isSelected: _selectedCard == 'marven-groovy',
               ),
+              const SizedBox(height: 16),
+              VadenLanguageSelector(
+                initialLanguage: Language.portuguese,
+                onLanguageChanged: (language) {
+                  // Faça algo com a seleção de idioma
+                  log('Idioma alterado para: $language');
+                },
+              )
             ],
           ),
         ),
