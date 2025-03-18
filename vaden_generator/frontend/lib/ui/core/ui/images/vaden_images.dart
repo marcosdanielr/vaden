@@ -11,4 +11,6 @@ class VadenImage {
 
   // Icons
   static const String copyrightIcon = '$iconsPath/copyright_icon.svg';
+  static const String gradleIcon = '$iconsPath/gradle.svg';
+  static const String marvenIcon = '$iconsPath/marven.svg';
 }
