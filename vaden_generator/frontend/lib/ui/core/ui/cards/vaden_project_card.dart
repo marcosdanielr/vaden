@@ -37,30 +37,34 @@ class VadenProjectCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final defaultBorderRadius = BorderRadius.circular(10);
+    final effectiveBorderRadius = borderRadius ?? defaultBorderRadius;
+
+    final backgroundColor = VadenColors.backgroundColor2;
+
+    final textColor = isSelected ? VadenColors.whiteColor : VadenColors.stkSupport2;
+
     final theme = Theme.of(context);
 
-    // Lógica para determinar o ícone baseado na variante
     Widget? effectiveIcon = customIcon;
     if (variant != null && effectiveIcon == null) {
       switch (variant) {
         case ProjectVariant.gradle:
           effectiveIcon = Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: 16),
             child: SvgPicture.asset(
-              package: VadenImage.packageName,
-              VadenImage.gradleIcon,
-              height: 24,
+              isSelected ? VadenImage.gradleIconDeselected : VadenImage.gradleIcon,
+              height: 18,
               width: 24,
             ),
           );
           break;
         case ProjectVariant.marven:
           effectiveIcon = Padding(
-            padding: const EdgeInsets.only(right: 8.0),
+            padding: const EdgeInsets.only(right: 16),
             child: SvgPicture.asset(
-              package: VadenImage.packageName,
-              VadenImage.marvenIcon,
-              height: 24,
+              isSelected ? VadenImage.marvenIcon : VadenImage.marvenIconDeselected,
+              height: 18,
               width: 24,
             ),
           );
@@ -69,15 +73,6 @@ class VadenProjectCard extends StatelessWidget {
           break;
       }
     }
-
-    final defaultBorderRadius = BorderRadius.circular(10);
-    final effectiveBorderRadius = borderRadius ?? defaultBorderRadius;
-
-    // Usar isSelected diretamente para determinar se está ativo
-    final backgroundColor = VadenColors.backgroundColor2;
-
-    // Texto fica com opacidade reduzida quando não selecionado
-    final textColor = isSelected ? VadenColors.whiteColor : VadenColors.stkSupport2;
 
     return GestureDetector(
       onTap: onTap,
@@ -95,10 +90,7 @@ class VadenProjectCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Prefix icon
             if (effectiveIcon != null) effectiveIcon,
-
-            // Title
             Expanded(
               child: Text(
                 title,
@@ -109,8 +101,6 @@ class VadenProjectCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
-            // Selection indicator
             if (isSelected)
               Container(
                 width: 24,
