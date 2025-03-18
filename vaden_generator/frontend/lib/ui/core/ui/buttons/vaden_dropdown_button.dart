@@ -60,7 +60,12 @@ class _VadenDropdownState extends State<VadenDropdown> {
       // Recria o overlay se estiver aberto para refletir a nova seleção
       if (_isDropdownOpen) {
         _removeOverlay();
-        _showOverlay();
+        // Use a post-frame callback to show the overlay after the build is complete
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            _showOverlay();
+          }
+        });
       }
     }
   }
@@ -74,15 +79,20 @@ class _VadenDropdownState extends State<VadenDropdown> {
   void _toggleDropdown() {
     if (!widget.isEnabled) return;
 
-    if (_isDropdownOpen) {
-      _removeOverlay();
-    } else {
-      _showOverlay();
-    }
-
     setState(() {
       _isDropdownOpen = !_isDropdownOpen;
     });
+
+    if (_isDropdownOpen) {
+      // Use a post-frame callback to show the overlay after the build is complete
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _showOverlay();
+        }
+      });
+    } else {
+      _removeOverlay();
+    }
   }
 
   void _removeOverlay() {
@@ -106,9 +116,10 @@ class _VadenDropdownState extends State<VadenDropdown> {
       widget.onOptionSelected!(option);
     }
 
-    // Recria o overlay para refletir a nova seleção
-    _removeOverlay();
-    _showOverlay();
+    // Update the overlay entry to reflect the new selection without closing/reopening
+    if (_isDropdownOpen && _overlayEntry != null) {
+      _overlayEntry!.markNeedsBuild();
+    }
   }
 
   // Widget para criar a bolinha de seleção com anel e degradê
@@ -175,10 +186,11 @@ class _VadenDropdownState extends State<VadenDropdown> {
         // Fecha o dropdown quando clicar fora dele
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          _removeOverlay();
+          // Close the dropdown when tapping outside
           setState(() {
             _isDropdownOpen = false;
           });
+          _removeOverlay();
         },
         child: Stack(
           children: [
@@ -193,66 +205,70 @@ class _VadenDropdownState extends State<VadenDropdown> {
                 link: _layerLink,
                 showWhenUnlinked: false,
                 offset: Offset(0, size.height + 4),
-                child: Material(
-                  elevation: 8,
-                  color: Colors.transparent,
-                  shadowColor: Colors.black26,
-                  child: Container(
-                    constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: VadenColors.whiteColor,
-                        width: 1,
+                child: GestureDetector(
+                  // Prevent taps on the dropdown menu from closing it
+                  onTap: () {}, // Empty callback to prevent propagation
+                  child: Material(
+                    elevation: 8,
+                    color: Colors.transparent,
+                    shadowColor: Colors.black26,
+                    child: Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.3,
                       ),
-                    ),
-                    child: ListView.builder(
-                      padding: EdgeInsets.zero,
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemCount: widget.options.length,
-                      itemBuilder: (context, index) {
-                        final option = widget.options[index];
-                        final isSelected = option == _selectedOption;
+                      decoration: BoxDecoration(
+                        color: Colors.black,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: VadenColors.whiteColor,
+                          width: 1,
+                        ),
+                      ),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        physics: const ClampingScrollPhysics(),
+                        itemCount: widget.options.length,
+                        itemBuilder: (context, index) {
+                          final option = widget.options[index];
+                          final isSelected = option == _selectedOption;
 
-                        return InkWell(
-                          onTap: () => _selectOption(option),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    option,
-                                    style: const TextStyle(
-                                      color: VadenColors.whiteColor,
-                                      fontSize: 16,
+                          return InkWell(
+                            onTap: () => _selectOption(option),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      option,
+                                      style: const TextStyle(
+                                        color: VadenColors.whiteColor,
+                                        fontSize: 16,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                ),
-                                isSelected
-                                    ? _buildSelectionIndicator()
-                                    : Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: VadenColors.whiteColor,
-                                            width: 1,
+                                  isSelected
+                                      ? _buildSelectionIndicator()
+                                      : Container(
+                                          width: 24,
+                                          height: 24,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: VadenColors.whiteColor,
+                                              width: 1,
+                                            ),
                                           ),
                                         ),
-                                      ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
