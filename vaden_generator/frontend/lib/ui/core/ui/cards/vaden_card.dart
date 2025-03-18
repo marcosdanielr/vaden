@@ -37,18 +37,20 @@ class VadenCard extends StatelessWidget {
     final defaultBorderRadius = BorderRadius.circular(10);
     final effectiveBorderRadius = borderRadius ?? defaultBorderRadius;
 
-    final backgroundColor = isEnabled //
-        ? VadenColors.backgroundColor2 //
-        : VadenColors.backgroundColor.withOpacity(0.5);
+    final effectiveIsEnabled = isEnabled || isSelected;
 
-    final textColor = isEnabled ? VadenColors.whiteColor : VadenColors.whiteColor.withOpacity(0.5);
+    final backgroundColor = effectiveIsEnabled
+        ? VadenColors.backgroundColor2
+        : VadenColors.backgroundColor;
 
-    final subtitleColor = isEnabled
-        ? VadenColors.txtSupport.withOpacity(0.6)
-        : VadenColors.txtSupport.withOpacity(0.3);
+    final textColor = effectiveIsEnabled //
+        ? VadenColors.whiteColor //
+        : VadenColors.txtDisabled;
+
+    final subtitleColor = VadenColors.txtSupport;
 
     return GestureDetector(
-      onTap: isEnabled ? onTap : null,
+      onTap: onTap,
       child: Container(
         height: height,
         width: width,
@@ -57,7 +59,7 @@ class VadenCard extends StatelessWidget {
           color: backgroundColor,
           borderRadius: effectiveBorderRadius,
           border: Border.all(
-            color: VadenColors.whiteColor,
+            color: isSelected ? VadenColors.stkWhite : VadenColors.stkDisabled,
             width: 1,
           ),
         ),
@@ -74,7 +76,7 @@ class VadenCard extends StatelessWidget {
                         child: Text(
                           title,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            color: textColor,
+                            color: isSelected ? VadenColors.txtSecondary : VadenColors.txtSupport3,
                             fontWeight: FontWeight.bold,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -88,7 +90,7 @@ class VadenCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: VadenColors.greyColor,
+                            color: VadenColors.stkSupport2,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
@@ -105,7 +107,7 @@ class VadenCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: subtitleColor,
+                      color: VadenColors.txtSupport3,
                       fontWeight: FontWeight.w300,
                     ),
                     maxLines: 2,
@@ -142,7 +144,7 @@ class VadenCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: VadenColors.whiteColor.withOpacity(0.3),
+                    color: VadenColors.supportColor2,
                     width: 1,
                   ),
                 ),
