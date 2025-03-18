@@ -22,7 +22,7 @@ class VadenCard extends StatelessWidget {
     this.tag,
     this.isSelected = false,
     this.onTap,
-    this.height = 80,
+    this.height = 72,
     this.width = double.infinity,
     this.trailing,
     this.borderRadius,
@@ -39,15 +39,9 @@ class VadenCard extends StatelessWidget {
 
     final effectiveIsEnabled = isEnabled || isSelected;
 
-    final backgroundColor = effectiveIsEnabled
-        ? VadenColors.backgroundColor2
+    final backgroundColor = effectiveIsEnabled //
+        ? VadenColors.backgroundColor2 //
         : VadenColors.backgroundColor;
-
-    final textColor = effectiveIsEnabled //
-        ? VadenColors.whiteColor //
-        : VadenColors.txtDisabled;
-
-    final subtitleColor = VadenColors.txtSupport;
 
     return GestureDetector(
       onTap: onTap,
@@ -71,16 +65,15 @@ class VadenCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: isSelected ? VadenColors.txtSecondary : VadenColors.txtSupport3,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: isSelected ? VadenColors.txtSecondary : VadenColors.txtSupport3,
+                          fontWeight: FontWeight.bold,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                       if (tag != null)
                         Container(
@@ -101,6 +94,7 @@ class VadenCard extends StatelessWidget {
                             ),
                           ),
                         ),
+                      Spacer(), // Adiciona espaço flexível após o título e tag
                     ],
                   ),
                   const SizedBox(height: 4),
