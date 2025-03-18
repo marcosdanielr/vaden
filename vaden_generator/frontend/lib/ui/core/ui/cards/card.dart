@@ -1,0 +1,1 @@
+export 'vaden_card.dart';
