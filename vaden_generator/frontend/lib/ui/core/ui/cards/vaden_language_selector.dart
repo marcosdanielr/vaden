@@ -92,9 +92,26 @@ class _VadenLanguageSelectorState extends State<VadenLanguageSelector> {
                           ),
                     ),
                   ),
-                  Icon(
-                    _isOpen ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: VadenColors.stkSupport2,
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: VadenColors.backgroundColor2,
+                      border: Border.all(
+                        color: VadenColors.stkSupport2,
+                        width: 1,
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        _isOpen
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        color: VadenColors.stkSupport2,
+                        size: 16,
+                      ),
+                    ),
                   ),
                 ],
               ),
