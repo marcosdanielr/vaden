@@ -10,3 +10,5 @@ build/
 temp/
 local/
 .env
+lib/vaden_application.dart
+pubspec_overrides.yaml

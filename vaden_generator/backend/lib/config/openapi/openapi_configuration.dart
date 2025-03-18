@@ -15,7 +15,15 @@ class OpenApiConfiguration {
         description: settings['openapi']['description'],
       ),
       servers: [
-        config.localServer,
+        if (settings['server']['mode'] == 'debug')
+          config.localServer.copyWith(
+            url: 'http://localhost:8080',
+          ),
+        if (settings['server']['mode'] == 'production')
+          config.localServer.copyWith(
+            url: 'https://api.vaden.dev',
+            description: 'Vaden API Production',
+          ),
       ],
       tags: config.tags,
       paths: config.paths,
@@ -29,6 +37,7 @@ class OpenApiConfiguration {
   SwaggerUI swaggerUI(OpenApi openApi) {
     return SwaggerUI(
       jsonEncode(openApi.toJson()),
+      title: 'Vaden API',
       docExpansion: DocExpansion.list,
       deepLink: true,
       persistAuthorization: false,

@@ -102,10 +102,12 @@ const _applicationContent = '''openapi:
   title: {{name}} API
   version: 1.0.0
   description: API gerada automaticamente pelo Vaden.
+  enable: true
 
 server:
   port: 8080
   host: localhost
+  mode: debug
 
 storage:
   provider: local  # opções: local, s3, firebase
@@ -122,27 +124,24 @@ storage:
 
 ''';
 
-const _dockerFileContent = '''# Use latest stable channel SDK.
-FROM dart:stable AS build
+const _dockerFileContent = '''
+FROM dart:3.6.0 AS build
 
-# Resolve app dependencies.
 WORKDIR /app
 COPY pubspec.* ./
 RUN dart pub get
 
-# Copy app source code (except anything in .dockerignore) and AOT compile app.
 COPY . .
+RUN dart pub get --offline
+RUN dart run build_runner build --delete-conflicting-outputs
 RUN dart compile exe bin/server.dart -o bin/server
 
-# Build minimal serving image from AOT-compiled `/server`
-# and the pre-built AOT-runtime in the `/runtime/` directory of the base image.
 FROM scratch
+WORKDIR /app
 COPY --from=build /runtime/ /
-COPY --from=build /app/bin/server /app/bin/
-
-# Start server.
+COPY --from=build /app/bin/server /app/
 EXPOSE 8080
-CMD ["/app/bin/server"]
+CMD ["./server"]
 ''';
 
 const _analysisOptionsContent = '''include: package:lints/recommended.yaml
@@ -167,10 +166,11 @@ const _analysisOptionsContent = '''include: package:lints/recommended.yaml
 const _gitIgnoreContent = '''# https://dart.dev/guides/libraries/private-files
 # Created by `dart pub`
 .dart_tool/
-vaden_application.dart
+lib/vaden_application.dart
 ''';
 
 const _dockerIgnoreContent = '''.dockerignore
+.dockerignore
 Dockerfile
 build/
 .dart_tool/
@@ -179,6 +179,11 @@ build/
 .gitignore
 .idea/
 .packages
+temp/
+local/
+.env
+lib/vaden_application.dart
+pubspec_overrides.yaml
 ''';
 
 const _publicIndexContent = '''<!DOCTYPE html>

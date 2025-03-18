@@ -2,12 +2,19 @@ openapi:
   title: Vaden Generator API
   version: 1.0.0
   description: API para a página de geração de projeto do Vaden.
+  enable: true
 
 server:
   port: 8080
   host: localhost
+  mode: debug
 
 storage:
   provider: local  
   local:
     folder: './uploads'
+
+apoia_se:
+  url: 'https://api.apoia.se'
+  key: 'iYlydfvdfvsdvmlKRp3WuN'
+  secret: '1o4Ce-BFY9s-dsPxxHoOtY4BtuU94-XtGL0B7aymLq8'

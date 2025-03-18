@@ -13,7 +13,7 @@ class CreateProject {
   CreateProject(this._generateService);
 
   AsyncResult<ProjectLinkDTO> call(Project project) async {
-    final temp = Directory('temp');
+    final temp = Directory('uploads${Platform.pathSeparator}temp');
     return _generateService //
         .createTempProject(project, temp)
         .flatMap(_generateService.addDependencies)

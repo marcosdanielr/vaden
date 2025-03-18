@@ -15,7 +15,7 @@ String dtoSetup(ClassElement classElement) {
 
   bodyBuffer.writeln('''
 fromJsonMap[${classElement.name}] = (Map<String, dynamic> json) {
-  return ${classElement.name}(
+  return Function.apply(${classElement.name}.new,
     $fromJsonBody
 );
 };''');
@@ -84,7 +84,8 @@ String _fieldToSchema(DartType type) {
 }
 
 String _fromJson(ClassElement classElement) {
-  final construtorBuffer = StringBuffer();
+  final positionalArgsBuffer = StringBuffer();
+  final namedArgsBuffer = StringBuffer();
 
   final constructor = classElement.constructors.firstWhere(
     (ctor) => !ctor.isFactory && ctor.isPublic,
@@ -94,28 +95,41 @@ String _fromJson(ClassElement classElement) {
     final paramName = _getParameterName(parameter);
     final paramType = parameter.type.getDisplayString();
     final isNotNull = parameter.type.nullabilitySuffix == NullabilitySuffix.none;
+    final hasDefault = parameter.hasDefaultValue;
     var paramValue = '';
 
     if (isPrimitiveListOrMap(parameter.type)) {
-      paramValue = 'json[\'$paramName\']';
+      paramValue = "json['$paramName']";
     } else {
       if (parameter.type.isDartCoreList) {
         final param = parameter.type as ParameterizedType;
-        final arg = param.typeArguments.first;
-        paramValue = isNotNull ? 'fromJsonList<$arg>(json[\'$paramName\'])' : 'json[\'$paramName\'] == null ? null : fromJsonList<$arg>(json[\'$paramName\'])';
+        final arg = param.typeArguments.first.getDisplayString();
+        paramValue = isNotNull ? "fromJsonList<$arg>(json['$paramName'])" : "json['$paramName'] == null ? null : fromJsonList<$arg>(json['$paramName'])";
       } else {
-        paramValue = isNotNull ? 'fromJson<$paramType>(json[\'$paramName\'])' : 'json[\'$paramName\'] == null ? null : fromJson<$paramType>(json[\'$paramName\'])';
+        paramValue = isNotNull ? "fromJson<$paramType>(json['$paramName'])" : "json['$paramName'] == null ? null : fromJson<$paramType>(json['$paramName'])";
       }
     }
 
     if (parameter.isNamed) {
-      construtorBuffer.writeln("    ${parameter.name}: $paramValue,");
+      if (hasDefault) {
+        namedArgsBuffer.writeln("if (json.containsKey('$paramName')) #${parameter.name}: $paramValue,");
+      } else {
+        namedArgsBuffer.writeln("#${parameter.name}: $paramValue,");
+      }
     } else {
-      construtorBuffer.writeln("    $paramValue,");
+      positionalArgsBuffer.writeln("    $paramValue,");
     }
   }
 
-  return construtorBuffer.toString();
+  final buffer = StringBuffer();
+  buffer.writeln('[');
+  buffer.write(positionalArgsBuffer.toString());
+  buffer.writeln('],');
+  buffer.writeln('{');
+  buffer.write(namedArgsBuffer.toString());
+  buffer.writeln('}');
+
+  return buffer.toString();
 }
 
 String _getParameterName(ParameterElement parameter) {
