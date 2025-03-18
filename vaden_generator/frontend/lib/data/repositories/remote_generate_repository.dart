@@ -12,15 +12,38 @@ class RemoteGenerateRepository implements GenerateRepository {
 
   @override
   AsyncResult<ProjectLinkDTO> create(ProjectDto dto) {
-    // TODO: implement create
-    throw UnimplementedError();
+    final Map<String, dynamic> bodyMap = {
+      'projectName': dto.name,
+      'projectDescription': dto.description,
+      'dartVersion': dto.dartVersion,
+      'dependencies':
+          dto.dependencies.map((dependency) => dependency.toMap()).toList(),
+    };
+
+    return _clientHttp //
+        .post(ClientRequest(path: '/v1/generate/create', data: bodyMap))
+        .flatMap(_projectLinkAdapter);
   }
 
   @override
   AsyncResult<List<DependencyDTO>> getDependencies() async {
     return _clientHttp //
-        .get('/v1/generate/dependencies')
+        .get(ClientRequest(path: '/v1/generate/dependencies'))
         .flatMap(_dependenciesFromResponse);
+  }
+
+  Result<ProjectLinkDTO> _projectLinkAdapter(ClientResponse onSuccess) {
+    try {
+      final String baseUrl = const String.fromEnvironment('BASE_URL');
+      final String path = '/resource/uploads/';
+      final String fileName = onSuccess.data['url'];
+      final String projectName = onSuccess.request.data['projectName'];
+
+      return Success(
+          ProjectLinkDTO('$baseUrl$path$fileName?name=$projectName'));
+    } catch (e) {
+      return Failure(Exception(e.toString()));
+    }
   }
 
   AsyncResult<List<DependencyDTO>> _dependenciesFromResponse(
