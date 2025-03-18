@@ -10,12 +10,15 @@ class MockDioResponse<T> extends Mock implements Response<T> {}
 void main() {
   late Dio dio;
   late ClientHttp clientHttp;
+  late ClientRequest request;
   late DioException dioError;
   late BaseOptions options;
 
   setUp(() {
     dio = MockDio();
     clientHttp = ClientHttp(dio);
+
+    request = ClientRequest(path: '/test', data: {'name': 'John'});
 
     dioError = DioException(
       requestOptions: RequestOptions(path: '/test'),
@@ -54,7 +57,7 @@ void main() {
       when(() => dio.get(any(), options: any(named: 'options')))
           .thenAnswer((_) async => mockDioResponse());
 
-      final result = await clientHttp.get('/test');
+      final result = await clientHttp.get(request);
 
       expect(result.isSuccess(), true);
       expect(result.getOrNull()!.statusCode, 200);
@@ -64,7 +67,7 @@ void main() {
       when(() => dio.get(any(), options: any(named: 'options')))
           .thenThrow(dioError);
 
-      final result = await clientHttp.get('/test');
+      final result = await clientHttp.get(request);
 
       expect(result.isError(), true);
       expect(result.exceptionOrNull(), isA<ClientException>());
@@ -77,7 +80,7 @@ void main() {
               options: any(named: 'options'), data: any(named: 'data')))
           .thenAnswer((_) async => mockDioResponse(statusCode: 201));
 
-      final result = await clientHttp.post('/test', data: {'name': 'John'});
+      final result = await clientHttp.post(request);
 
       expect(result.isSuccess(), true);
       expect(result.getOrNull()!.statusCode, 201);
@@ -88,7 +91,7 @@ void main() {
           options: any(named: 'options'),
           data: any(named: 'data'))).thenThrow(dioError);
 
-      final result = await clientHttp.post('/test', data: {'name': 'John'});
+      final result = await clientHttp.post(request);
 
       expect(result.isError(), isTrue);
       expect(result.exceptionOrNull(), isA<ClientException>());
