@@ -1,11 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:frontend/config/constants.dart';
 import 'package:frontend/data/repositories/generate_repository.dart';
 import 'package:frontend/data/repositories/remote_generate_repository.dart';
 import 'package:frontend/data/services/client_http.dart';
-import 'package:frontend/domain/dtos/dependency_dto.dart';
-import 'package:frontend/domain/dtos/project_dto.dart';
-import 'package:frontend/domain/dtos/project_link_dto.dart';
+import 'package:frontend/data/services/url_launcher_service.dart';
+import 'package:frontend/domain/entities/dependency.dart';
+import 'package:frontend/domain/entities/project.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:result_dart/result_dart.dart';
 
@@ -13,12 +14,26 @@ import '../mock/response_mock.dart';
 
 class MockClientHttp extends Mock implements ClientHttp {}
 
+class MockConstants extends Mock implements Constants {}
+
+class UrlLauncherServiceFake extends Fake implements UrlLauncherService {
+  String url = '';
+
+  @override
+  AsyncResult<Unit> launch(String url) async {
+    this.url = url;
+    return Success(unit);
+  }
+}
+
 class MockcDioException extends Mock implements DioException {}
 
 class ClientRequestFake extends Fake implements ClientRequest {}
 
 void main() {
   late ClientHttp clientHttp;
+  late Constants constants;
+  late UrlLauncherService urlLauncherService;
   late GenerateRepository generateRepository;
 
   setUpAll(() {
@@ -27,7 +42,10 @@ void main() {
 
   setUp(() {
     clientHttp = MockClientHttp();
-    generateRepository = RemoteGenerateRepository(clientHttp);
+    constants = MockConstants();
+    urlLauncherService = UrlLauncherServiceFake();
+    generateRepository =
+        RemoteGenerateRepository(constants, clientHttp, urlLauncherService);
   });
 
   group('Get dependencies', () {
@@ -43,7 +61,7 @@ void main() {
       final dependencies = await generateRepository.getDependencies();
 
       expect(dependencies.isSuccess(), true);
-      expect(dependencies.getOrNull(), isA<List<DependencyDTO>>());
+      expect(dependencies.getOrNull(), isA<List<Dependency>>());
     });
 
     test('Should returnt dio exception when the response is fail', () async {
@@ -76,6 +94,7 @@ void main() {
   group('Create project', () {
     test('Should return the project link when the response is success',
         () async {
+      when(() => constants.urlBase).thenAnswer((_) => 'https://api.vaden.dev');
       when(() => clientHttp.post(any()))
           .thenAnswer((_) async => Success(ClientResponse(
                 data: ResponseMock.postCreate,
@@ -84,21 +103,21 @@ void main() {
                     ClientRequest(path: '', data: {'projectName': 'project'}),
               )));
 
-      final projectUrl = await generateRepository.create(ProjectDto());
+      final projectUrl = await generateRepository.createZip(Project());
 
       expect(projectUrl.isSuccess(), true);
-      expect(projectUrl.getOrNull(), isA<ProjectLinkDTO>());
+      expect(projectUrl.getOrNull(), isA<Unit>());
       expect(
-          projectUrl.getOrNull()?.url,
-          equals('https://api.vaden.dev/resource/uploads/'
-              '1a8ccfed-b200-4d57-83a6-99b65abafcf5.zip?name=project'));
+          (urlLauncherService as UrlLauncherServiceFake).url,
+          'https://api.vaden.dev/resource/uploads/'
+          '1a8ccfed-b200-4d57-83a6-99b65abafcf5.zip?name=project');
     });
 
     test('Should returnt dio exception when the response is fail', () async {
       when(() => clientHttp.post(any()))
           .thenAnswer((_) async => Failure(MockcDioException()));
 
-      final projectUrl = await generateRepository.create(ProjectDto());
+      final projectUrl = await generateRepository.createZip(Project());
 
       expect(projectUrl.isSuccess(), false);
       expect(projectUrl.exceptionOrNull(), isA<DioException>());
@@ -115,7 +134,7 @@ void main() {
                     ClientRequest(path: '', data: {'projectName': 'project'}),
               )));
 
-      final projectUrl = await generateRepository.create(ProjectDto());
+      final projectUrl = await generateRepository.createZip(Project());
 
       expect(projectUrl.isSuccess(), false);
       expect(projectUrl.exceptionOrNull(), isNotNull);
@@ -131,7 +150,7 @@ void main() {
                 request: ClientRequest(path: '', data: {}),
               )));
 
-      final projectUrl = await generateRepository.create(ProjectDto());
+      final projectUrl = await generateRepository.createZip(Project());
 
       expect(projectUrl.isSuccess(), false);
       expect(projectUrl.exceptionOrNull(), isNotNull);
