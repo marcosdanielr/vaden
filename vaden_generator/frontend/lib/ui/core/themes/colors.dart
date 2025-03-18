@@ -20,6 +20,7 @@ class VadenColors {
   static const Color greyColor = backgroundError;
   static const Color disabledColor = Color(0xFFB6B6B6);
   static const Color supportColor = Color(0xFF717171);
+  static const Color supportColor2 = Color(0xFF737077);
 
   // Text Colors
   static const Color txtPrimary = primaryColor;
@@ -32,7 +33,8 @@ class VadenColors {
   static const Color txtGrey = greyColor;
   static const Color txtDisabled = disabledColor;
   static const Color txtSupport = supportColor;
-  static const Color txtSupport2 = Color(0xFF737077);
+  static const Color txtSupport2 = supportColor2;
+  static const Color txtSupport3 = Color(0xFF777070);
 
   // Stoke Colors
   static const Color stkBalck = blackColor;
@@ -45,6 +47,7 @@ class VadenColors {
   static const Color stkGrey = greyColor;
   static const Color stkDisabled = disabledColor;
   static const Color stkSupport = supportColor;
+  static const Color stkSupport2 = supportColor2;
 
   // Gradient Colors
   static const Color gradientStart = Color(0xFF7C1334);
