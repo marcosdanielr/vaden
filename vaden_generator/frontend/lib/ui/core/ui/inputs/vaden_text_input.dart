@@ -19,6 +19,7 @@ class VadenTextInput extends StatefulWidget {
   final bool hasError;
   final List<TextInputFormatter>? inputFormatters;
   final bool isEnabled;
+  final double verticalPadding;
 
   const VadenTextInput({
     super.key,
@@ -37,6 +38,7 @@ class VadenTextInput extends StatefulWidget {
     this.hasError = false,
     this.inputFormatters,
     this.isEnabled = true,
+    this.verticalPadding = 12,
   });
 
   @override
@@ -66,7 +68,7 @@ class _VadenTextInputState extends State<VadenTextInput> {
                 color: VadenColors.txtDisabled,
               ),
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.all(16),
+          contentPadding: EdgeInsets.symmetric(vertical: widget.verticalPadding, horizontal: 12),
           labelText: widget.label,
           labelStyle: widget.labelStyle ??
               theme.textTheme.bodyLarge!.copyWith(
