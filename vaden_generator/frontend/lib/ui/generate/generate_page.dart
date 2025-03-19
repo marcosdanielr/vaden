@@ -310,31 +310,6 @@ class _GeneratePageState extends State<GeneratePage> {
                               ),
                             ],
                           ),
-                          // Adicionar toggle para alternar entre dados reais e mockados (apenas para testes)
-                          const SizedBox(height: 16),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Checkbox(
-                                value: _useMockData,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _useMockData = value ?? false;
-                                  });
-                                },
-                                fillColor: MaterialStateProperty.resolveWith(
-                                  (states) => VadenColors.gradientStart,
-                                ),
-                              ),
-                              Text(
-                                'Usar dados mockados para teste',
-                                style: GoogleFonts.anekBangla(
-                                  color: VadenColors.txtSecondary,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
-                          ),
                         ],
                       ),
                       const SizedBox(height: 80),
