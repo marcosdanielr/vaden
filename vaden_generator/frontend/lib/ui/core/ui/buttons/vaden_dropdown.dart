@@ -238,6 +238,7 @@ class _VadenDropdownState extends State<VadenDropdown> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
@@ -315,6 +316,7 @@ class _VadenDropdownState extends State<VadenDropdown> {
                 ),
               ),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
