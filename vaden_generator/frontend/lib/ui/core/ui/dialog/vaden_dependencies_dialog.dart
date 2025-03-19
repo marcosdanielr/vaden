@@ -41,6 +41,67 @@ class VadenMockDependencies {
         key: 'shared_preferences',
         tag: 'Dev Tools',
       ),
+      // Novas dependências
+      Dependency(
+        name: 'get_it',
+        description: 'Localizador de serviços simples e poderoso para injeção de dependências',
+        key: 'get_it',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'provider',
+        description: 'Biblioteca de gerenciamento de estado recomendada pelo Flutter',
+        key: 'provider',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'riverpod',
+        description: 'Alternativa ao Provider com recursos adicionais e API mais robusta',
+        key: 'riverpod',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'http',
+        description: 'Biblioteca para fazer requisições HTTP',
+        key: 'http',
+        tag: 'Networking',
+      ),
+      Dependency(
+        name: 'retrofit',
+        description: 'Cliente HTTP tipo-seguro para Dart, inspirado no Retrofit do Android',
+        key: 'retrofit',
+        tag: 'Networking',
+      ),
+      Dependency(
+        name: 'hive',
+        description: 'Banco de dados NoSQL leve e rápido escrito em Dart puro',
+        key: 'hive',
+        tag: 'Storage',
+      ),
+      Dependency(
+        name: 'sqflite',
+        description: 'Plugin de banco de dados SQLite para Flutter',
+        key: 'sqflite',
+        tag: 'Storage',
+      ),
+      Dependency(
+        name: 'flutter_secure_storage',
+        description: 'Armazenamento seguro para chaves e valores sensíveis',
+        key: 'flutter_secure_storage',
+        tag: 'Security',
+      ),
+      Dependency(
+        name: 'cached_network_image',
+        description: 'Biblioteca para carregar e armazenar em cache imagens da rede',
+        key: 'cached_network_image',
+        tag: 'UI',
+      ),
+      Dependency(
+        name: 'flutter_svg',
+        description: 'Plugin SVG para Flutter',
+        key: 'flutter_svg',
+        tag: 'UI',
+      ),
     ];
   }
 }
@@ -48,7 +109,7 @@ class VadenMockDependencies {
 class VadenDependenciesDialog extends StatefulWidget {
   final Function(List<Dependency>) onSave;
   final VoidCallback onCancel;
-  
+
   // Flag para usar dados mockados
   final bool useMockData;
 
@@ -103,7 +164,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
     super.initState();
     // Inicializar flag de mock com base no parâmetro do widget
     _useMockData = widget.useMockData;
-    
+
     // Initialize mock data if needed
     _mockDependencies = VadenMockDependencies.getMockDependencies();
 
