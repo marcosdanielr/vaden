@@ -21,6 +21,7 @@ class VadenColors {
   static const Color disabledColor = Color(0xFFB6B6B6);
   static const Color supportColor = Color(0xFF717171);
   static const Color supportColor2 = Color(0xFF737077);
+  static const Color dialogBgColor = Color(0xFF19171C);
 
   // Text Colors
   static const Color txtPrimary = primaryColor;
