@@ -10,6 +10,11 @@ mixin _StateGenerate on ChangeNotifier {
   List<Dependency> _dependencies = [];
   List<Dependency> get dependencies => _dependencies;
 
+  @visibleForTesting
+  void setDependencies(List<Dependency> dependencies) {
+    _dependencies = dependencies;
+  }
+
   void _setDependencies(List<Dependency> dependencies) {
     _dependencies = dependencies;
     notifyListeners();
