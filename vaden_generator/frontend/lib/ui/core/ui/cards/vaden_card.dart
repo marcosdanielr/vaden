@@ -116,20 +116,7 @@ class VadenCard extends StatelessWidget {
                 child: trailing,
               )
             else if (isSelected)
-              Container(
-                width: 24,
-                height: 24,
-                margin: const EdgeInsets.only(left: 8),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: VadenColors.errorColor,
-                ),
-                child: const Icon(
-                  Icons.adjust_rounded,
-                  color: VadenColors.errorColor,
-                  size: 16,
-                ),
-              )
+              _buildSelectionIndicator()
             else
               Container(
                 width: 24,
@@ -145,6 +132,57 @@ class VadenCard extends StatelessWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSelectionIndicator() {
+    return Container(
+      width: 24,
+      height: 24,
+      margin: const EdgeInsets.only(left: 8),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  VadenColors.gradientStart,
+                  VadenColors.gradientEnd,
+                ],
+              ),
+            ),
+          ),
+          Container(
+            width: 18,
+            height: 18,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black,
+            ),
+          ),
+          Container(
+            width: 12,
+            height: 12,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  VadenColors.gradientStart,
+                  VadenColors.gradientEnd,
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
