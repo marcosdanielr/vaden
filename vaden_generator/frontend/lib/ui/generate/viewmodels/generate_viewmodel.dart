@@ -33,13 +33,13 @@ class GenerateViewmodel extends ChangeNotifier with _StateGenerate {
   GenerateViewmodel(this._generateRepository);
   final GenerateRepository _generateRepository;
 
-  late final fetchDependenciesComnand =
+  late final fetchDependenciesCommand =
       Command0<List<Dependency>>(_fetchDependencies);
-  late final addDependencyOnProjectComnand =
+  late final addDependencyOnProjectCommand =
       Command1<Unit, Dependency>(_addDependency);
-  late final removeDependencyOnProjectComnand =
+  late final removeDependencyOnProjectCommand =
       Command1<Unit, Dependency>(_removeDependency);
-  late final createProjectComnand = Command1<Unit, Project>(_createProject);
+  late final createProjectCommand = Command1<Unit, Project>(_createProject);
 
   AsyncResult<List<Dependency>> _fetchDependencies() {
     return _generateRepository //
