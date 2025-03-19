@@ -13,7 +13,7 @@ class AppControllerAdvice {
     return Response(
       e.response?.statusCode ?? 500,
       body: jsonEncode({
-        'message': e.response?.data['message'] ?? 'Test OK',
+        'message': e.response?.data['message'] ?? 'Internal server error',
       }),
     );
   }
