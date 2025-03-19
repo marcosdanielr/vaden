@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:frontend/domain/entities/dependency.dart';
+import 'dependency.dart';
 
 class Project {
   String name;
