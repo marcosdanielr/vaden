@@ -52,4 +52,6 @@ class VadenColors {
   // Gradient Colors
   static const Color gradientStart = Color(0xFF7C1334);
   static const Color gradientEnd = Color(0xFFC30F28);
+  static const Color blackGradientEnd = Color(0xFF19171C);
+  static const Color blackGradientStart = blackColor;
 }
