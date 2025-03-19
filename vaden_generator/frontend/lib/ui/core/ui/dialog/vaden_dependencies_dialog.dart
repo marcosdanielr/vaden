@@ -1,318 +1,258 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
-import '../../themes/colors.dart';
-import '../cards/vaden_card.dart';
+import '../../../../domain/entities/dependency.dart';
+import '../../../generate/viewmodels/generate_viewmodel.dart';
+import '../ui.dart';
 
-// Modelo para representar uma dependência
-class DependencyItem {
-  final String name;
-  final String description;
-  final String tag;
-  bool isSelected;
-
-  DependencyItem({
-    required this.name,
-    required this.description,
-    required this.tag,
-    this.isSelected = false,
-  });
-
-  // Factory para criar a partir do JSON
-  factory DependencyItem.fromJson(Map<String, dynamic> json) {
-    return DependencyItem(
-      name: json['name'] ?? '',
-      description: json['description'] ?? '',
-      tag: json['tag'] ?? '',
-      isSelected: json['isDefault'] ?? false,
-    );
-  }
-}
-
-class DependenciesDialog extends StatefulWidget {
-  final Function(List<DependencyItem>) onSave;
+class VadenDependenciesDialog extends StatefulWidget {
+  final Function(List<Dependency>) onSave;
   final VoidCallback onCancel;
-  final String apiUrl;
 
-  const DependenciesDialog({
+  const VadenDependenciesDialog({
     super.key,
     required this.onSave,
     required this.onCancel,
-    required this.apiUrl,
   });
 
-  static Future<List<DependencyItem>?> show(
+  static Future<List<Dependency>?> show(
     BuildContext context,
-    String apiUrl,
+    GenerateViewmodel viewModel,
   ) async {
-    return await showDialog<List<DependencyItem>>(
+    return await showDialog<List<Dependency>>(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => DependenciesDialog(
-        apiUrl: apiUrl,
-        onSave: (selectedDeps) {
-          Navigator.of(context).pop(selectedDeps);
-        },
-        onCancel: () {
-          Navigator.of(context).pop();
-        },
+      barrierDismissible: true,
+      barrierColor: Colors.black.withOpacity(0.5),
+      builder: (context) => ChangeNotifierProvider.value(
+        value: viewModel,
+        child: VadenDependenciesDialog(
+          onSave: (selectedDeps) {
+            Navigator.of(context).pop(selectedDeps);
+          },
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+        ),
       ),
     );
   }
 
   @override
-  State<DependenciesDialog> createState() => _DependenciesDialogState();
+  State<VadenDependenciesDialog> createState() => _VadenDependenciesDialogState();
 }
 
-class _DependenciesDialogState extends State<DependenciesDialog> {
-  bool _isLoading = true;
-  String _errorMessage = '';
-  List<DependencyItem> _dependencies = [];
-  String _currentCategory = 'Dev tools'; // Categoria atual exibida
+class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
+  List<Dependency> _selectedDependencies = [];
+  String _currentCategory = 'Dev Tools';
+  final double fontSize = 12.0;
+  late final double lineHeight = 24.0 / fontSize;
+  late final double letterSpacing = fontSize * 0.04;
 
   @override
   void initState() {
     super.initState();
-    _fetchDependencies();
-  }
-
-  Future<void> _fetchDependencies() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = '';
+    // Buscar dependências quando o diálogo é aberto
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchDependencies();
     });
-
-    try {
-      // Chamada real para a API
-      final response = await http.get(
-        Uri.parse(widget.apiUrl),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        // Processar os dados da API - ajuste conforme a estrutura real da resposta
-        if (data is List) {
-          _dependencies = data.map((item) => DependencyItem.fromJson(item)).toList();
-        } else if (data is Map && data.containsKey('dependencies')) {
-          _dependencies =
-              (data['dependencies'] as List).map((item) => DependencyItem.fromJson(item)).toList();
-        } else {
-          throw Exception('Formato de resposta da API inesperado');
-        }
-
-        // Obter a categoria da primeira dependência, se disponível
-        if (_dependencies.isNotEmpty) {
-          _currentCategory = _dependencies.first.tag;
-        }
-
-        setState(() {
-          _isLoading = false;
-        });
-      } else {
-        setState(() {
-          _errorMessage = 'Erro ao carregar dependências: Status ${response.statusCode}';
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Erro ao carregar dependências: $e';
-        _isLoading = false;
-      });
-    }
   }
 
-  void _retryFetch() {
-    _fetchDependencies();
-  }
+  void _fetchDependencies() {
+    final viewModel = context.read<GenerateViewmodel>();
+    viewModel.fetchDependenciesCommand.execute();
 
-  void _toggleDependency(int index) {
+    // Inicializar dependências já selecionadas
     setState(() {
-      _dependencies[index].isSelected = !_dependencies[index].isSelected;
+      _selectedDependencies = List.from(viewModel.projectDependencies);
+    });
+  }
+
+  void _toggleDependency(Dependency dependency) {
+    final viewModel = context.read<GenerateViewmodel>();
+
+    setState(() {
+      if (_selectedDependencies.contains(dependency)) {
+        _selectedDependencies.remove(dependency);
+        viewModel.removeDependencyOnProjectCommand.execute(dependency);
+      } else {
+        _selectedDependencies.add(dependency);
+        viewModel.addDependencyOnProjectCommand.execute(dependency);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-      child: Container(
-        width: 580,
-        decoration: BoxDecoration(
-          color: VadenColors.backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: VadenColors.stkDisabled.withOpacity(0.3),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Dependências',
-                    style: GoogleFonts.anekBangla(
-                      color: VadenColors.txtSecondary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: VadenColors.backgroundColor2,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      _currentCategory,
-                      style: GoogleFonts.anekBangla(
-                        color: VadenColors.txtSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+    return Consumer<GenerateViewmodel>(
+      builder: (context, viewModel, _) {
+        // Determinar a categoria da primeira dependência, se houver
+        if (viewModel.dependencies.isNotEmpty) {
+          _currentCategory = viewModel.dependencies.first.tag;
+        }
+
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          child: Container(
+            width: 580,
+            decoration: BoxDecoration(
+              color: VadenColors.dialogBgColor,
+              borderRadius: BorderRadius.circular(16),
             ),
-            const Divider(
-              height: 1,
-              thickness: 1,
-              color: VadenColors.stkDisabled,
-            ),
-            if (_isLoading)
-              Container(
-                height: 300,
-                alignment: Alignment.center,
-                child: const CircularProgressIndicator(
-                  color: VadenColors.errorColor,
-                ),
-              )
-            else if (_errorMessage.isNotEmpty)
-              Container(
-                height: 300,
-                alignment: Alignment.center,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _errorMessage,
-                      style: GoogleFonts.anekBangla(
-                        color: VadenColors.errorColor,
-                        fontSize: 16,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cabeçalho do diálogo
+                Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            'Dependencias',
+                            style: GoogleFonts.anekBangla(
+                              color: VadenColors.txtSecondary,
+                              fontSize: 20,
+                              fontWeight: FontWeight.normal,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Container(
+                            height: 1,
+                            width: 120,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                                colors: [
+                                  VadenColors.gradientStart,
+                                  VadenColors.gradientEnd,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: _retryFetch,
-                      icon: const Icon(Icons.refresh, color: VadenColors.errorColor),
-                      label: Text(
-                        'Tentar novamente',
-                        style: GoogleFonts.anekBangla(
-                          color: VadenColors.errorColor,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                      SizedBox(
+                        width: 120,
+                        height: 40,
+                        child: VadenDropdown(
+                          options: [
+                            'Dev Tools',
+                          ],
+                          optionsStyle: GoogleFonts.anekBangla(
+                            fontSize: fontSize,
+                            color: VadenColors.txtSecondary,
+                            height: lineHeight * 0.5,
+                            letterSpacing: letterSpacing,
+                          ),
+                          selectedOption: 'Dev Tools',
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else if (_dependencies.isEmpty)
-              Container(
-                height: 300,
-                alignment: Alignment.center,
-                child: Text(
-                  'Nenhuma dependência disponível',
-                  style: GoogleFonts.anekBangla(
-                    color: VadenColors.txtSupport,
-                    fontSize: 16,
+                      )
+                    ],
                   ),
                 ),
-              )
-            else
-              ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.5,
-                  minHeight: 50,
-                ),
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: const EdgeInsets.all(20),
-                  itemCount: _dependencies.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final item = _dependencies[index];
-                    return VadenCard(
-                      title: item.name,
-                      subtitle: item.description,
-                      tag: item.tag,
-                      isSelected: item.isSelected,
-                      onTap: () => _toggleDependency(index),
-                      height: 80,
+
+                // Conteúdo do diálogo (dependendo do estado)
+                Builder(
+                  builder: (context) {
+                    // Estado de carregamento
+                    if (viewModel.fetchDependenciesCommand.isRunning) {
+                      return Container(
+                        height: 300,
+                        alignment: Alignment.center,
+                        child: const CircularProgressIndicator.adaptive(
+                          backgroundColor: VadenColors.errorColor,
+                        ),
+                      );
+                    }
+
+                    // Estado de erro
+                    if (viewModel.fetchDependenciesCommand.isFailure) {
+                      return Container(
+                        height: 300,
+                        alignment: Alignment.center,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Erro ao carregar dependências',
+                              style: GoogleFonts.anekBangla(
+                                color: VadenColors.errorColor,
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton.icon(
+                              onPressed: _fetchDependencies,
+                              icon: const Icon(Icons.refresh, color: VadenColors.errorColor),
+                              label: Text(
+                                'Tentar novamente',
+                                style: GoogleFonts.anekBangla(
+                                  color: VadenColors.errorColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // Estado sem dependências
+                    if (viewModel.dependencies.isEmpty) {
+                      return Container(
+                        height: 300,
+                        alignment: Alignment.center,
+                        child: Text(
+                          'Nenhuma dependência disponível',
+                          style: GoogleFonts.anekBangla(
+                            color: VadenColors.txtSupport,
+                            fontSize: 16,
+                          ),
+                        ),
+                      );
+                    }
+
+                    // Lista de dependências
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.5,
+                        minHeight: 50,
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(20),
+                        itemCount: viewModel.dependencies.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final dependency = viewModel.dependencies[index];
+                          final isSelected = _selectedDependencies.contains(dependency);
+
+                          return VadenCard(
+                            title: dependency.name,
+                            subtitle: dependency.description,
+                            tag: dependency.tag,
+                            isSelected: isSelected,
+                            onTap: () => _toggleDependency(dependency),
+                            height: 72,
+                          );
+                        },
+                      ),
                     );
                   },
                 ),
-              ),
-            const Divider(
-              height: 1,
-              thickness: 1,
-              color: VadenColors.stkDisabled,
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: widget.onCancel,
-                    style: TextButton.styleFrom(
-                      foregroundColor: VadenColors.txtSupport,
-                    ),
-                    child: Text(
-                      'Cancelar',
-                      style: GoogleFonts.anekBangla(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      final selectedDeps = _dependencies.where((dep) => dep.isSelected).toList();
-                      widget.onSave(selectedDeps);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: VadenColors.errorColor,
-                      foregroundColor: VadenColors.txtSecondary,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                    ),
-                    child: Text(
-                      'Confirmar',
-                      style: GoogleFonts.anekBangla(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
