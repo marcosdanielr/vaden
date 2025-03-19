@@ -29,9 +29,9 @@ void main() {
     when(() => generateRepository.getDependencies())
         .thenAnswer((_) async => Success([DependencyFake()]));
 
-    await viewmodel.fetchDependenciesComnand.execute();
+    await viewmodel.fetchDependenciesCommand.execute();
 
-    expect(viewmodel.fetchDependenciesComnand.isSuccess, true);
+    expect(viewmodel.fetchDependenciesCommand.isSuccess, true);
     expect(viewmodel.dependencies.isNotEmpty, true);
   });
 
@@ -41,11 +41,11 @@ void main() {
 
     expect(viewmodel.projectDependencies.isEmpty, true);
 
-    await viewmodel.addDependencyOnProjectComnand.execute(dependency.first);
+    await viewmodel.addDependencyOnProjectCommand.execute(dependency.first);
 
     expect(viewmodel.projectDependencies.isNotEmpty, true);
 
-    await viewmodel.removeDependencyOnProjectComnand.execute(dependency.first);
+    await viewmodel.removeDependencyOnProjectCommand.execute(dependency.first);
 
     expect(viewmodel.projectDependencies.isEmpty, true);
   });
@@ -54,8 +54,8 @@ void main() {
     when(() => generateRepository.createZip(any()))
         .thenAnswer((_) async => Success(unit));
 
-    await viewmodel.createProjectComnand.execute(Project());
+    await viewmodel.createProjectCommand.execute(Project());
 
-    expect(viewmodel.createProjectComnand.isSuccess, true);
+    expect(viewmodel.createProjectCommand.isSuccess, true);
   });
 }
