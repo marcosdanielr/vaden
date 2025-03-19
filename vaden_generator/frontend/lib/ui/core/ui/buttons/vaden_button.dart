@@ -249,36 +249,42 @@ class VadenButton extends StatelessWidget {
       );
     }
 
-    // Criar ícone com ou sem gradiente
-    Widget? iconWidget;
-    if (icon != null) {
-      if (textGradient != null) {
-        iconWidget = ShaderMask(
-          shaderCallback: (bounds) => textGradient.createShader(bounds),
-          child: Icon(
-            icon,
-            size: iconSize,
-            color: Colors.white,
-          ),
-        );
-      } else {
-        iconWidget = Icon(
-          icon,
-          size: iconSize,
-          color: iconColor,
-        );
-      }
+    // Se não tiver ícone, apenas centraliza o texto
+    if (icon == null) {
+      return Center(
+        child: textWidget,
+      );
     }
 
+    // Criar ícone com ou sem gradiente
+    Widget iconWidget;
+    if (textGradient != null) {
+      iconWidget = ShaderMask(
+        shaderCallback: (bounds) => textGradient.createShader(bounds),
+        child: Icon(
+          icon,
+          size: iconSize,
+          color: Colors.white,
+        ),
+      );
+    } else {
+      iconWidget = Icon(
+        icon,
+        size: iconSize,
+        color: iconColor,
+      );
+    }
+
+    // Se tiver ícone, usa o layout original com Row
     return Row(
       mainAxisAlignment: centerText ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
       children: [
         if (centerText) const Spacer(),
         textWidget,
         if (centerText) const Spacer(),
-        if (icon != null && !centerText)
-          iconWidget!
-        else if (centerText && icon != null)
+        if (!centerText)
+          iconWidget
+        else
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: iconWidget,
@@ -337,6 +343,8 @@ extension VadenButtonExtension on VadenButton {
               ? VadenButtonState.disabled
               : VadenButtonState.normal,
       color: VadenButtonColor.gradient,
+      centerText: true,
+      textStyle: VadenTextStyle.normal,
     );
   }
 
