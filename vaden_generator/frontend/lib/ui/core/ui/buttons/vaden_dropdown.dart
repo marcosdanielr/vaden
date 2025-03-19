@@ -8,6 +8,9 @@ class VadenDropdown extends StatefulWidget {
   final String? selectedOption;
   final Function(String)? onOptionSelected;
   final bool isEnabled;
+  final TextStyle? textStyle;
+  final TextStyle? titleStyle;
+  final TextStyle? optionsStyle;
 
   const VadenDropdown({
     super.key,
@@ -17,6 +20,9 @@ class VadenDropdown extends StatefulWidget {
     this.selectedOption,
     this.onOptionSelected,
     this.isEnabled = true,
+    this.textStyle,
+    this.titleStyle,
+    this.optionsStyle,
   });
 
   @override
@@ -222,10 +228,12 @@ class _VadenDropdownState extends State<VadenDropdown> {
                                   Expanded(
                                     child: Text(
                                       option,
-                                      style: const TextStyle(
-                                        color: VadenColors.whiteColor,
-                                        fontSize: 16,
-                                      ),
+                                      style: widget.optionsStyle ??
+                                          widget.textStyle ??
+                                          const TextStyle(
+                                            color: VadenColors.whiteColor,
+                                            fontSize: 16,
+                                          ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
@@ -269,10 +277,12 @@ class _VadenDropdownState extends State<VadenDropdown> {
             padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
             child: Text(
               widget.title!,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: widget.titleStyle ??
+                  widget.textStyle ??
+                  const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
             ),
           ),
         CompositedTransformTarget(
@@ -300,12 +310,13 @@ class _VadenDropdownState extends State<VadenDropdown> {
                   Expanded(
                     child: Text(
                       _selectedOption ?? widget.placeholder,
-                      style: TextStyle(
-                        color: widget.isEnabled //
-                            ? VadenColors.whiteColor //
-                            : VadenColors.disabledColor,
-                        fontSize: 16,
-                      ),
+                      style: widget.textStyle ??
+                          TextStyle(
+                            color: widget.isEnabled
+                                ? VadenColors.whiteColor
+                                : VadenColors.disabledColor,
+                            fontSize: 16,
+                          ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
