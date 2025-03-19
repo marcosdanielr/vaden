@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import '../../themes/colors.dart';
 
-
 class VadenTextInput extends StatefulWidget {
   final String label;
   final String hint;
@@ -45,12 +44,12 @@ class VadenTextInput extends StatefulWidget {
 }
 
 class _VadenTextInputState extends State<VadenTextInput> {
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
     return Container(
-      // height: widget.height,
+      height: widget.height,
       width: widget.width,
       constraints: const BoxConstraints(minHeight: 56),
       child: TextFormField(
