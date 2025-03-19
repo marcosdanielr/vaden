@@ -7,8 +7,16 @@ import '../../../domain/entities/dependency.dart';
 import '../../../domain/entities/project.dart';
 
 mixin _StateGenerate on ChangeNotifier {
+  final List<String> _dartVersions = ['3.7.1', '3.7.2'];
+  List<String> get dartVersions => _dartVersions;
+
   List<Dependency> _dependencies = [];
   List<Dependency> get dependencies => _dependencies;
+
+  @visibleForTesting
+  void setDependencies(List<Dependency> dependencies) {
+    _dependencies = dependencies;
+  }
 
   void _setDependencies(List<Dependency> dependencies) {
     _dependencies = dependencies;

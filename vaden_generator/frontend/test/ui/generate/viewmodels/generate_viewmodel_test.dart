@@ -25,13 +25,6 @@ void main() {
     viewmodel = GenerateViewmodel(generateRepository);
   });
 
-  Future<void> setDependencies() async {
-    when(() => generateRepository.getDependencies())
-        .thenAnswer((_) async => Success([DependencyFake()]));
-
-    await viewmodel.fetchDependenciesComnand.execute();
-  }
-
   test('fetch dependencies comnand', () async {
     when(() => generateRepository.getDependencies())
         .thenAnswer((_) async => Success([DependencyFake()]));
@@ -43,7 +36,7 @@ void main() {
   });
 
   test('add end remove project dependencies', () async {
-    await setDependencies();
+    viewmodel.setDependencies([DependencyFake()]);
     final dependency = viewmodel.dependencies;
 
     expect(viewmodel.projectDependencies.isEmpty, true);
