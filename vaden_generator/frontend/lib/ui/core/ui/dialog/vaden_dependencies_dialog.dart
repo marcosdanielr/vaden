@@ -196,19 +196,20 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   void _toggleDependency(Dependency dependency) {
     final viewModel = context.read<GenerateViewmodel>();
 
-    setState(() {
-      if (_selectedDependencies.contains(dependency)) {
-        _selectedDependencies.remove(dependency);
-        if (!_useMockData) {
-          viewModel.removeDependencyOnProjectCommand.execute(dependency);
-        }
-      } else {
-        _selectedDependencies.add(dependency);
-        if (!_useMockData) {
-          viewModel.addDependencyOnProjectCommand.execute(dependency);
-        }
+    if (_selectedDependencies.contains(dependency)) {
+      _selectedDependencies.remove(dependency);
+      if (!_useMockData) {
+        viewModel.removeDependencyOnProjectCommand.execute(dependency);
       }
-    });
+    } else {
+      _selectedDependencies.add(dependency);
+      if (!_useMockData) {
+        viewModel.addDependencyOnProjectCommand.execute(dependency);
+      }
+    }
+
+    // Fechar o diálogo e retornar as dependências selecionadas
+    widget.onSave(_selectedDependencies);
   }
 
   // Method to enable mock data for testing
