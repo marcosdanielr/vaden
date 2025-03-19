@@ -9,7 +9,7 @@ import '../ui/generate/viewmodels/generate_viewmodel.dart';
 final injector = AutoInjector();
 
 void setupInjection() {
-  injector.addInstance(Constants);
+  injector.addInstance(Constants());
   injector.add(dioFactory);
   injector.addSingleton(ClientHttp.new);
   injector.addSingleton(UrlLauncherService.new);
