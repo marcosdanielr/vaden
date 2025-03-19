@@ -1,10 +1,11 @@
+import 'package:result_dart/result_dart.dart';
+
 import '../../config/constants.dart';
-import 'generate_repository.dart';
-import '../services/client_http.dart';
-import '../services/url_launcher_service.dart';
 import '../../domain/entities/dependency.dart';
 import '../../domain/entities/project.dart';
-import 'package:result_dart/result_dart.dart';
+import '../services/client_http.dart';
+import '../services/url_launcher_service.dart';
+import 'generate_repository.dart';
 
 class RemoteGenerateRepository implements GenerateRepository {
   final Constants _constants;
