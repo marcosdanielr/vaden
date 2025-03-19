@@ -12,7 +12,6 @@ class VadenTextInput extends StatefulWidget {
   final double height;
   final double width;
   final bool isFilled;
-  final bool isPassword;
   final TextInputType textInputType;
   final ValueChanged<String>? onChanged;
   final AutovalidateMode? autovalidateMode;
@@ -31,7 +30,6 @@ class VadenTextInput extends StatefulWidget {
     this.height = 56,
     this.width = double.infinity,
     this.isFilled = true,
-    this.isPassword = false,
     this.onChanged,
     this.autovalidateMode,
     this.textInputType = TextInputType.text,
@@ -47,13 +45,6 @@ class VadenTextInput extends StatefulWidget {
 }
 
 class _VadenTextInputState extends State<VadenTextInput> {
-  late bool _isObscure;
-
-  @override
-  void initState() {
-    super.initState();
-    _isObscure = widget.isPassword;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,7 +57,6 @@ class _VadenTextInputState extends State<VadenTextInput> {
         autovalidateMode: widget.autovalidateMode,
         enabled: widget.isEnabled,
         keyboardType: widget.textInputType,
-        obscureText: _isObscure,
         controller: widget.controller,
         validator: widget.validator,
         onChanged: widget.onChanged,
