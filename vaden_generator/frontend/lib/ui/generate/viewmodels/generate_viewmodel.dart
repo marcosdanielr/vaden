@@ -26,12 +26,12 @@ mixin _StateGenerate on ChangeNotifier {
   final List<Dependency> _projectDependencies = [];
   List<Dependency> get projectDependencies => _projectDependencies;
 
-  void _addDependencyOnPorject(Dependency dependency) {
+  void _addDependencyOnProject(Dependency dependency) {
     _projectDependencies.add(dependency);
     notifyListeners();
   }
 
-  void _removeDependencyOnPorject(Dependency dependency) {
+  void _removeDependencyOnProject(Dependency dependency) {
     _projectDependencies.remove(dependency);
     notifyListeners();
   }
@@ -56,12 +56,12 @@ class GenerateViewmodel extends ChangeNotifier with _StateGenerate {
   }
 
   AsyncResult<Unit> _addDependency(Dependency dependency) async {
-    _addDependencyOnPorject(dependency);
+    _addDependencyOnProject(dependency);
     return const Success(unit);
   }
 
   AsyncResult<Unit> _removeDependency(Dependency dependency) async {
-    _removeDependencyOnPorject(dependency);
+    _removeDependencyOnProject(dependency);
     return const Success(unit);
   }
 
