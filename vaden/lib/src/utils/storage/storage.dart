@@ -30,7 +30,7 @@ abstract class Storage {
         );
       case 'local':
       default:
-        return LocalStorage(settings['storage']['provider']);
+        return LocalStorage(settings['storage']['local']['folder']);
     }
   }
 

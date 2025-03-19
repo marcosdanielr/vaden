@@ -13,7 +13,7 @@ class OpenAPIGenerator extends FileGenerator {
     final libConfigOpenapiOpenapiConfiguration =
         File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}config${Platform.pathSeparator}openapi${Platform.pathSeparator}openapi_configuration.dart');
     await libConfigOpenapiOpenapiConfiguration.create(recursive: true);
-    await libConfigOpenapiOpenapiConfiguration.writeAsString(libConfigOpenapiOpenapiConfigurationContent);
+    await libConfigOpenapiOpenapiConfiguration.writeAsString(parseVariables(libConfigOpenapiOpenapiConfigurationContent, variables));
 
     final libConfigOpenapiOpenapiController =
         File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}config${Platform.pathSeparator}openapi${Platform.pathSeparator}openapi_controller.dart');
@@ -61,7 +61,7 @@ class OpenApiConfiguration {
   SwaggerUI swaggerUI(OpenApi openApi) {
     return SwaggerUI(
       jsonEncode(openApi.toJson()),
-      title: 'Vaden Backend example',
+      title: '{{name}} API',
       docExpansion: DocExpansion.list,
       deepLink: true,
       persistAuthorization: false,
@@ -80,12 +80,17 @@ import 'package:vaden/vaden_openapi.dart' hide Response;
 @Controller('/docs')
 class OpenAPIController {
   final SwaggerUI swaggerUI;
-  const OpenAPIController(this.swaggerUI);
+  final ApplicationSettings settings;
+
+  const OpenAPIController(this.swaggerUI, this.settings);
 
   @Get('/')
   FutureOr<Response> getSwagger(Request request) {
-    return swaggerUI.call(request);
+    if (settings['openapi']['enable'] == true) {
+      return swaggerUI.call(request);
+    }
+
+    return Response.notFound('Not Found');
   }
 }
-
 ''';

@@ -6,10 +6,16 @@ import 'package:vaden/vaden_openapi.dart' hide Response;
 @Controller('/docs')
 class OpenAPIController {
   final SwaggerUI swaggerUI;
-  const OpenAPIController(this.swaggerUI);
+  final ApplicationSettings settings;
+
+  const OpenAPIController(this.swaggerUI, this.settings);
 
   @Get('/')
   FutureOr<Response> getSwagger(Request request) {
-    return swaggerUI.call(request);
+    if (settings['openapi']['enable'] == true) {
+      return swaggerUI.call(request);
+    }
+
+    return Response.notFound('Not Found');
   }
 }
