@@ -25,10 +25,40 @@ class _GeneratePageState extends State<GeneratePage> {
   final _projectNameEC = TextEditingController();
   final _projectDescriptionEC = TextEditingController();
 
+  // Flag para controlar se deve usar dados mockados
+  bool _useMockData = false;
+
   @override
   void initState() {
     super.initState();
     viewModel.fetchDependenciesCommand.execute();
+  }
+
+  // Método para abrir o diálogo de dependências
+  Future<void> _openDependenciesDialog() async {
+    final result = await VadenDependenciesDialog.show(context, viewModel);
+
+    // Processar o resultado se necessário
+    if (result != null) {
+      // Fazer algo com as dependências selecionadas
+      debugPrint('Dependências selecionadas: ${result.length}');
+    }
+  }
+
+  // Método para abrir o diálogo com dados mockados
+  Future<void> _openDependenciesDialogWithMockData() async {
+    // Abrir o diálogo diretamente com dados mockados
+    final dialogResult = await VadenDependenciesDialog.show(
+      context, 
+      viewModel,
+      useMockData: true,
+    );
+
+    // Processar o resultado se necessário
+    if (dialogResult != null) {
+      // Fazer algo com as dependências selecionadas
+      debugPrint('Dependências mockadas selecionadas: ${dialogResult.length}');
+    }
   }
 
   @override
@@ -176,11 +206,7 @@ class _GeneratePageState extends State<GeneratePage> {
                           SizedBox(
                             width: double.infinity,
                             child: VadenDropdown(
-                              options: [
-                                '2.17.0',
-                                '2.18.0',
-                                '2.19.0',
-                              ],
+                              options: viewModel.dartVersions,
                               title: 'Versão Dart',
                               selectedOption: 'Versão Dart',
                             ),
@@ -246,10 +272,40 @@ class _GeneratePageState extends State<GeneratePage> {
                                 child: VadenButtonExtension.primary(
                                   title: 'Adicionar',
                                   onPressed: () {
-                                    VadenDependenciesDialog.show(context, viewModel);
+                                    // Usar dados mockados ou reais com base na flag
+                                    if (_useMockData) {
+                                      _openDependenciesDialogWithMockData();
+                                    } else {
+                                      _openDependenciesDialog();
+                                    }
                                   },
                                   icon: null,
                                   width: 120,
+                                ),
+                              ),
+                            ],
+                          ),
+                          // Adicionar toggle para alternar entre dados reais e mockados (apenas para testes)
+                          const SizedBox(height: 16),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Checkbox(
+                                value: _useMockData,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _useMockData = value ?? false;
+                                  });
+                                },
+                                fillColor: MaterialStateProperty.resolveWith(
+                                  (states) => VadenColors.gradientStart,
+                                ),
+                              ),
+                              Text(
+                                'Usar dados mockados para teste',
+                                style: GoogleFonts.anekBangla(
+                                  color: VadenColors.txtSecondary,
+                                  fontSize: 14,
                                 ),
                               ),
                             ],
