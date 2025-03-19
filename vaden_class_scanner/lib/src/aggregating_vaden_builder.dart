@@ -42,7 +42,7 @@ class AggregatingVadenBuilder implements Builder {
 
     importsBuffer.writeln('// GENERATED CODE - DO NOT MODIFY BY HAND');
     importsBuffer.writeln('// Aggregated Vaden application file');
-    importsBuffer.writeln('// ignore_for_file: prefer_function_declarations_over_variables');
+    importsBuffer.writeln('// ignore_for_file: prefer_function_declarations_over_variables, implementation_imports');
     importsBuffer.writeln();
     importsBuffer.writeln("import 'dart:convert';");
     importsBuffer.writeln("import 'dart:io';");
@@ -105,7 +105,7 @@ class AggregatingVadenBuilder implements Builder {
     }).map((record) {
       final (classElement, registerWithInterfaceOrSuperType) = record;
       final uri = classElement.librarySource.uri.toString();
-      importSet.add(uri);
+      importSet.add("'$uri';");
       return record;
     }).map((record) {
       final (classElement, registerWithInterfaceOrSuperType) = record;
@@ -124,7 +124,13 @@ class AggregatingVadenBuilder implements Builder {
       } else if (dtoChecker.hasAnnotationOf(classElement)) {
         dtoBuffer.writeln(dtoSetup(classElement));
       } else if (controllerAdviceChecker.hasAnnotationOf(classElement)) {
-        exceptionHandlerBuffer.writeln(controllerAdviceSetup(classElement));
+        final (adviceBody, imports) = controllerAdviceSetup(classElement);
+
+        if (adviceBody.isNotEmpty) {
+          exceptionHandlerBuffer.writeln(adviceBody);
+        }
+
+        importSet.addAll(imports);
       }
 
       return bodyBuffer.toString();
@@ -151,7 +157,7 @@ class AggregatingVadenBuilder implements Builder {
 ''');
     aggregatedBuffer.writeln('}');
 
-    importsBuffer.writeln(importSet.map((uri) => "import '$uri';").join('\n'));
+    importsBuffer.writeln(importSet.map((uri) => "import $uri").join('\n'));
 
     importsBuffer.writeln();
     importsBuffer.writeln(aggregatedBuffer.toString());
@@ -172,11 +178,14 @@ class _DSON extends DSON {
 }
 ''');
 
-    final formattedCode = formatter.format(importsBuffer.toString());
-
     final outputId = _allFileOutput(buildStep);
-    await buildStep.writeAsString(outputId, formattedCode);
-    //await buildStep.writeAsString(outputId, importsBuffer.toString());
+
+    try {
+      final formattedCode = formatter.format(importsBuffer.toString());
+      await buildStep.writeAsString(outputId, formattedCode);
+    } catch (e) {
+      await buildStep.writeAsString(outputId, importsBuffer.toString());
+    }
   }
 
   String _componentRegister(ClassElement classElement, bool registerWithInterfaceOrSuperType) {

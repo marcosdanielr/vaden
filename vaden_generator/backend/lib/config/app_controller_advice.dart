@@ -1,11 +1,22 @@
 import 'dart:convert';
 
+import 'package:dio/dio.dart' hide Response;
 import 'package:vaden/vaden.dart';
 
 @ControllerAdvice()
 class AppControllerAdvice {
   final DSON _dson;
   AppControllerAdvice(this._dson);
+
+  @ExceptionHandler(DioException)
+  Future<Response> handleDioException(DioException e) async {
+    return Response(
+      e.response?.statusCode ?? 500,
+      body: jsonEncode({
+        'message': e.response?.data['message'] ?? 'Test OK',
+      }),
+    );
+  }
 
   @ExceptionHandler(ResponseException)
   Future<Response> handleResponseException(ResponseException e) async {
