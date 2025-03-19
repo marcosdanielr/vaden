@@ -6,20 +6,64 @@ import '../../../../domain/entities/dependency.dart';
 import '../../../generate/viewmodels/generate_viewmodel.dart';
 import '../ui.dart';
 
+/// Provides mock dependencies for testing purposes
+class VadenMockDependencies {
+  /// Returns a list of mock dependencies for testing
+  static List<Dependency> getMockDependencies() {
+    return [
+      Dependency(
+        name: 'flutter_modular',
+        description: 'Modular é um sistema de gerenciamento de rotas e injeção de dependências',
+        key: 'flutter_modular',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'mocktail',
+        description: 'Uma biblioteca de mock para testes em Dart',
+        key: 'mocktail',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'flutter_bloc',
+        description: 'Implementação do padrão BLoC para gerenciamento de estado',
+        key: 'flutter_bloc',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'dio',
+        description: 'Cliente HTTP poderoso para Dart',
+        key: 'dio',
+        tag: 'Dev Tools',
+      ),
+      Dependency(
+        name: 'shared_preferences',
+        description: 'Plugin para persistência de dados simples',
+        key: 'shared_preferences',
+        tag: 'Dev Tools',
+      ),
+    ];
+  }
+}
+
 class VadenDependenciesDialog extends StatefulWidget {
   final Function(List<Dependency>) onSave;
   final VoidCallback onCancel;
+  
+  // Flag para usar dados mockados
+  final bool useMockData;
 
   const VadenDependenciesDialog({
     super.key,
     required this.onSave,
     required this.onCancel,
+    this.useMockData = false,
   });
 
   static Future<List<Dependency>?> show(
     BuildContext context,
-    GenerateViewmodel viewModel,
-  ) async {
+    GenerateViewmodel viewModel, {
+    bool useMockData = false,
+  }) async {
     return await showDialog<List<Dependency>>(
       context: context,
       barrierDismissible: true,
@@ -33,6 +77,7 @@ class VadenDependenciesDialog extends StatefulWidget {
           onCancel: () {
             Navigator.of(context).pop();
           },
+          useMockData: useMockData,
         ),
       ),
     );
@@ -49,9 +94,19 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   late final double lineHeight = 24.0 / fontSize;
   late final double letterSpacing = fontSize * 0.04;
 
+  // Mock data flag for testing
+  late bool _useMockData;
+  List<Dependency> _mockDependencies = [];
+
   @override
   void initState() {
     super.initState();
+    // Inicializar flag de mock com base no parâmetro do widget
+    _useMockData = widget.useMockData;
+    
+    // Initialize mock data if needed
+    _mockDependencies = VadenMockDependencies.getMockDependencies();
+
     // Buscar dependências quando o diálogo é aberto
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchDependencies();
@@ -60,6 +115,15 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
 
   void _fetchDependencies() {
     final viewModel = context.read<GenerateViewmodel>();
+
+    // If using mock data, don't fetch from API
+    if (_useMockData) {
+      setState(() {
+        _selectedDependencies = [];
+      });
+      return;
+    }
+
     viewModel.fetchDependenciesCommand.execute();
 
     // Inicializar dependências já selecionadas
@@ -74,11 +138,22 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
     setState(() {
       if (_selectedDependencies.contains(dependency)) {
         _selectedDependencies.remove(dependency);
-        viewModel.removeDependencyOnProjectCommand.execute(dependency);
+        if (!_useMockData) {
+          viewModel.removeDependencyOnProjectCommand.execute(dependency);
+        }
       } else {
         _selectedDependencies.add(dependency);
-        viewModel.addDependencyOnProjectCommand.execute(dependency);
+        if (!_useMockData) {
+          viewModel.addDependencyOnProjectCommand.execute(dependency);
+        }
       }
+    });
+  }
+
+  // Method to enable mock data for testing
+  void _enableMockData() {
+    setState(() {
+      _useMockData = true;
     });
   }
 
@@ -86,9 +161,12 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   Widget build(BuildContext context) {
     return Consumer<GenerateViewmodel>(
       builder: (context, viewModel, _) {
-        // Determinar a categoria da primeira dependência, se houver
-        if (viewModel.dependencies.isNotEmpty) {
-          _currentCategory = viewModel.dependencies.first.tag;
+        final dependencies = _useMockData //
+            ? _mockDependencies //
+            : viewModel.dependencies;
+
+        if (dependencies.isNotEmpty) {
+          _currentCategory = dependencies.first.tag;
         }
 
         return Dialog(
@@ -160,8 +238,8 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                 // Conteúdo do diálogo (dependendo do estado)
                 Builder(
                   builder: (context) {
-                    // Estado de carregamento
-                    if (viewModel.fetchDependenciesCommand.isRunning) {
+                    // Estado de carregamento - não mostrar para mock data
+                    if (!_useMockData && viewModel.fetchDependenciesCommand.isRunning) {
                       return Container(
                         height: 300,
                         alignment: Alignment.center,
@@ -171,8 +249,8 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                       );
                     }
 
-                    // Estado de erro
-                    if (viewModel.fetchDependenciesCommand.isFailure) {
+                    // Estado de erro - não mostrar para mock data
+                    if (!_useMockData && viewModel.fetchDependenciesCommand.isFailure) {
                       return Container(
                         height: 300,
                         alignment: Alignment.center,
@@ -206,7 +284,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                     }
 
                     // Estado sem dependências
-                    if (viewModel.dependencies.isEmpty) {
+                    if (dependencies.isEmpty) {
                       return Container(
                         height: 300,
                         alignment: Alignment.center,
@@ -229,10 +307,10 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                       child: ListView.separated(
                         shrinkWrap: true,
                         padding: const EdgeInsets.all(20),
-                        itemCount: viewModel.dependencies.length,
+                        itemCount: dependencies.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final dependency = viewModel.dependencies[index];
+                          final dependency = dependencies[index];
                           final isSelected = _selectedDependencies.contains(dependency);
 
                           return VadenCard(
@@ -254,5 +332,16 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
         );
       },
     );
+  }
+}
+
+/// Extension for testing purposes
+extension VadenDependenciesDialogTestExtension on VadenDependenciesDialog {
+  /// Enable mock data for testing
+  static void enableMockDataForTesting(BuildContext context) {
+    final state = context.findAncestorStateOfType<_VadenDependenciesDialogState>();
+    if (state != null) {
+      state._enableMockData();
+    }
   }
 }
