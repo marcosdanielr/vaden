@@ -3,7 +3,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../config/dependencies.dart';
+import '../core/themes/colors.dart';
 import '../core/ui/ui.dart';
+import '../core/ui/cards/vaden_dependencies_card.dart';
 import 'viewmodels/generate_viewmodel.dart';
 
 class GeneratePage extends StatefulWidget {
@@ -40,7 +42,8 @@ class _GeneratePageState extends State<GeneratePage> {
 
     // Processar o resultado se necessário
     if (result != null) {
-      // Fazer algo com as dependências selecionadas
+      // As dependências já são adicionadas ao viewModel no diálogo
+      setState(() {});
       debugPrint('Dependências selecionadas: ${result.length}');
     }
   }
@@ -49,14 +52,20 @@ class _GeneratePageState extends State<GeneratePage> {
   Future<void> _openDependenciesDialogWithMockData() async {
     // Abrir o diálogo diretamente com dados mockados
     final dialogResult = await VadenDependenciesDialog.show(
-      context, 
+      context,
       viewModel,
       useMockData: true,
     );
 
     // Processar o resultado se necessário
     if (dialogResult != null) {
-      // Fazer algo com as dependências selecionadas
+      // Adicionar as dependências mockadas ao viewModel
+      for (final dependency in dialogResult) {
+        if (!viewModel.projectDependencies.contains(dependency)) {
+          viewModel.addDependencyOnProjectCommand.execute(dependency);
+        }
+      }
+      setState(() {});
       debugPrint('Dependências mockadas selecionadas: ${dialogResult.length}');
     }
   }
@@ -195,12 +204,14 @@ class _GeneratePageState extends State<GeneratePage> {
                             label: 'Nome do projeto',
                             hint: 'Vaden Backend',
                             controller: _projectNameEC,
+                            verticalPadding: 20,
                           ),
                           const SizedBox(height: 32),
                           VadenTextInput(
                             label: 'Descrição',
                             hint: 'Projeto Vaden',
                             controller: _projectDescriptionEC,
+                            verticalPadding: 20,
                           ),
                           const SizedBox(height: 32),
                           SizedBox(
@@ -253,16 +264,30 @@ class _GeneratePageState extends State<GeneratePage> {
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
                               Padding(
-                                padding: EdgeInsets.only(top: 6),
+                                padding: const EdgeInsets.only(top: 0),
                                 child: SizedBox(
                                   width: 440,
-                                  height: 56,
-                                  child: VadenTextInput(
-                                    label: 'Adicionar dependencias',
-                                    hint: 'Http',
-                                  ),
+                                  height: viewModel.projectDependencies.isEmpty ? 56 : null,
+                                  child: viewModel.projectDependencies.isEmpty
+                                      ? VadenTextInput(
+                                          label: 'Adicionar dependencias',
+                                          hint: '',
+                                          verticalPadding: viewModel.projectDependencies.isEmpty //
+                                              ? 20
+                                              : 12,
+                                          isEnabled: false,
+                                        )
+                                      : VadenDependenciesCard(
+                                          dependencies: viewModel.projectDependencies,
+                                          onRemove: (dependency) {
+                                            viewModel.removeDependencyOnProjectCommand
+                                                .execute(dependency);
+                                            setState(() {});
+                                          },
+                                        ),
                                 ),
                               ),
                               const SizedBox(width: 16),
