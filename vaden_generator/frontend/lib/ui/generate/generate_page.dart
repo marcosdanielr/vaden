@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../config/dependencies.dart';
 import '../core/ui/ui.dart';
+import 'viewmodels/generate_viewmodel.dart';
 
 class GeneratePage extends StatefulWidget {
   const GeneratePage({super.key});
@@ -17,8 +19,17 @@ class _GeneratePageState extends State<GeneratePage> {
   late final double lineHeight = 24.0 / fontSize;
   late final double letterSpacing = fontSize * 0.04;
 
+  // Generate
+  final viewModel = injector.get<GenerateViewmodel>();
+
   final _projectNameEC = TextEditingController();
   final _projectDescriptionEC = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    viewModel.fetchDependenciesCommand.execute();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -234,7 +245,9 @@ class _GeneratePageState extends State<GeneratePage> {
                                 height: 56,
                                 child: VadenButtonExtension.primary(
                                   title: 'Adicionar',
-                                  onPressed: () {},
+                                  onPressed: () {
+                                    VadenDependenciesDialog.show(context, viewModel);
+                                  },
                                   icon: null,
                                   width: 120,
                                 ),
