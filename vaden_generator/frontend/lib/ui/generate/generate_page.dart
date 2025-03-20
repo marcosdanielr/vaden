@@ -43,6 +43,7 @@ class _GeneratePageState extends State<GeneratePage> {
 
   @override
   Widget build(BuildContext context) {
+    Localizations.localeOf(context);
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(

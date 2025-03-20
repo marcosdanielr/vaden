@@ -4,6 +4,7 @@ import 'package:localization/localization.dart';
 import 'config/dependencies.dart';
 import 'ui/core/themes/theme.dart';
 import 'ui/generate/generate_page.dart';
+import 'ui/widgets/internation/internation_widget.dart';
 import 'viewmodels/main_viewmodels.dart';
 
 void main() {
@@ -39,11 +40,7 @@ class _MainAppState extends State<MainApp> {
             GlobalCupertinoLocalizations.delegate,
             LocalJsonLocalization.delegate,
           ],
-          supportedLocales: [
-            Locale('pt', 'BR'),
-            Locale('en', 'US'),
-            Locale('es', 'ES'),
-          ],
+          supportedLocales: I18n.values.map((value) => value.locale).toList(),
           localeResolutionCallback: (locale, supportedLocales) {
             Locale defaultLocale = Locale('en', 'US');
 
@@ -62,7 +59,7 @@ class _MainAppState extends State<MainApp> {
 
             return defaultLocale;
           },
-          home: GeneratePage(),
+          home: const GeneratePage(),
         );
       },
     );

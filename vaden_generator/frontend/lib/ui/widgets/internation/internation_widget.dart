@@ -21,6 +21,7 @@ enum I18n {
     return switch (locale.languageCode) {
       'en' => I18n.enUS,
       'pt' => I18n.ptBR,
+      'es' => I18n.esES,
       _ => I18n.enUS,
     };
   }
@@ -31,24 +32,17 @@ class InternationWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MainViewmodel viewmodel = injector.get<MainViewmodel>();
-
-    return ListenableBuilder(
-        listenable: viewmodel,
-        builder: (context, child) {
-          final MainViewmodel mainViewmodel = injector.get<MainViewmodel>();
-          final Map<String, I18n> i18nMap = {
-            for (var i18n in I18n.values) i18n.descriptionI18n(): i18n
-          };
-          return SizedBox(
-            width: 200,
-            child: VadenDropdown(
-              options: i18nMap.keys.toList(),
-              selectedOption: I18n.fromLocale(mainViewmodel.locale).descriptionI18n(),
-              onOptionSelected: (language) =>
-                  mainViewmodel.setLanguageCommand.execute(i18nMap[language]!.locale),
-            ),
-          );
-        });
+    Localizations.localeOf(context);
+    final MainViewmodel mainViewmodel = injector.get<MainViewmodel>();
+    final Map<String, I18n> i18nMap = {for (var i18n in I18n.values) i18n.descriptionI18n(): i18n};
+    return SizedBox(
+      width: 200,
+      child: VadenDropdown(
+        options: i18nMap.keys.toList(),
+        selectedOption: I18n.fromLocale(mainViewmodel.locale).descriptionI18n(),
+        onOptionSelected: (language) =>
+            mainViewmodel.setLanguageCommand.execute(i18nMap[language]!.locale),
+      ),
+    );
   }
 }
