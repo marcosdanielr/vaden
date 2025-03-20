@@ -101,8 +101,10 @@ class _GeneratePageState extends State<GeneratePage> {
                         child: SizedBox(
                           width: 200,
                           child: VadenDropdown(
-                            options: ['Portugues', 'Inlges'],
+                            options: ['Portugues', 'Ingles'],
                             selectedOption: 'Portugues',
+                            width: 200,
+                            fontSize: 16.0,
                           ),
                         ),
                       ),
@@ -167,6 +169,8 @@ class _GeneratePageState extends State<GeneratePage> {
                               title: 'Versão Dart',
                               selectedOption: viewModel.latestDartVersion,
                               onOptionSelected: viewModel.setDartVersionProjectCommand.execute,
+                              width: double.infinity,
+                              fontSize: 16.0,
                             ),
                           )
                         ],
