@@ -292,7 +292,7 @@ class _VadenDropdownState extends State<VadenDropdown> {
             key: _dropdownKey,
             onTap: _toggleDropdown,
             child: Container(
-              height: 40,
+              height: 56,
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 8,
