@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:localization/localization.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../domain/entities/dependency.dart';
@@ -101,7 +102,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
       builder: (context, viewModel, _) {
         final dependencies = viewModel.dependencies;
         final categories = _getUniqueCategories(dependencies);
-        
+
         // Garantir que a categoria atual existe na lista de categorias
         if (dependencies.isNotEmpty && !categories.contains(_currentCategory)) {
           _currentCategory = categories.first;
@@ -129,7 +130,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                       Column(
                         children: [
                           Text(
-                            'Dependencias',
+                            'Dependencies'.i18n(),
                             style: GoogleFonts.anekBangla(
                               color: VadenColors.txtSecondary,
                               fontSize: 20,
@@ -199,7 +200,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              'Erro ao carregar dependências',
+                              'Loading_dependencies_error'.i18n(),
                               style: GoogleFonts.anekBangla(
                                 color: VadenColors.errorColor,
                                 fontSize: 16,
@@ -211,7 +212,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                               onPressed: _fetchDependencies,
                               icon: const Icon(Icons.refresh, color: VadenColors.errorColor),
                               label: Text(
-                                'Tentar novamente',
+                                'Try_again'.i18n(),
                                 style: GoogleFonts.anekBangla(
                                   color: VadenColors.errorColor,
                                   fontSize: 14,
@@ -230,7 +231,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                         height: 300,
                         alignment: Alignment.center,
                         child: Text(
-                          'Nenhuma dependência disponível',
+                          'No_dependencies_available'.i18n(),
                           style: GoogleFonts.anekBangla(
                             color: VadenColors.txtSupport,
                             fontSize: 16,
