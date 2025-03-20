@@ -6,6 +6,15 @@ import '../../../data/repositories/generate_repository.dart';
 import '../../../domain/entities/dependency.dart';
 import '../../../domain/entities/project.dart';
 
+class ValidationError implements Exception {
+  final String message;
+
+  ValidationError(this.message);
+
+  @override
+  String toString() => message;
+}
+
 mixin _StateGenerate on ChangeNotifier {
   final List<String> _dartVersions = ['3.7.2', '3.7.1'];
   List<String> get dartVersions => _dartVersions;
@@ -28,8 +37,103 @@ mixin _StateGenerate on ChangeNotifier {
   final Project _project = Project();
   Project get project => _project;
 
+  // Validação do nome do projeto
+  String? validateProjectName(String name) {
+    if (name.isEmpty) {
+      return 'O nome do projeto não pode estar vazio';
+    }
+
+    // Verificar se começa com letra minúscula
+    if (name.isNotEmpty &&
+        name[0].toUpperCase() == name[0] &&
+        RegExp(r'[a-zA-Z]').hasMatch(name[0])) {
+      return 'O nome do projeto deve começar com letra minúscula';
+    }
+
+    // Verificar se contém apenas letras minúsculas, números e underscore
+    if (!RegExp(r'^[a-z][a-z0-9_]*$').hasMatch(name)) {
+      return 'O nome do projeto deve conter apenas letras minúsculas, números e underscore';
+    }
+
+    // Verificar se não contém palavras reservadas do Dart
+    final reservedWords = [
+      'abstract',
+      'as',
+      'assert',
+      'async',
+      'await',
+      'break',
+      'case',
+      'catch',
+      'class',
+      'const',
+      'continue',
+      'covariant',
+      'default',
+      'deferred',
+      'do',
+      'dynamic',
+      'else',
+      'enum',
+      'export',
+      'extends',
+      'extension',
+      'external',
+      'factory',
+      'false',
+      'final',
+      'finally',
+      'for',
+      'Function',
+      'get',
+      'hide',
+      'if',
+      'implements',
+      'import',
+      'in',
+      'interface',
+      'is',
+      'late',
+      'library',
+      'mixin',
+      'new',
+      'null',
+      'on',
+      'operator',
+      'part',
+      'required',
+      'rethrow',
+      'return',
+      'set',
+      'show',
+      'static',
+      'super',
+      'switch',
+      'sync',
+      'this',
+      'throw',
+      'true',
+      'try',
+      'typedef',
+      'var',
+      'void',
+      'while',
+      'with',
+      'yield'
+    ];
+
+    if (reservedWords.contains(name)) {
+      return 'O nome do projeto não pode ser uma palavra reservada do Dart';
+    }
+
+    return null; // Nome válido
+  }
+
   bool projectIsValid() {
     if (project.name.isEmpty) {
+      return false;
+    }
+    if (validateProjectName(project.name) != null) {
       return false;
     }
     if (project.description.isEmpty) {
@@ -99,6 +203,10 @@ class GenerateViewmodel extends ChangeNotifier with _StateGenerate {
   }
 
   AsyncResult<Unit> _setNameProject(String name) async {
+    final validation = validateProjectName(name);
+    if (validation != null) {
+      return Failure(ValidationError(validation));
+    }
     _setName(name);
     return const Success(unit);
   }
