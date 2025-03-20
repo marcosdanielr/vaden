@@ -7,8 +7,10 @@ import '../../../domain/entities/dependency.dart';
 import '../../../domain/entities/project.dart';
 
 mixin _StateGenerate on ChangeNotifier {
-  final List<String> _dartVersions = ['3.7.1', '3.7.2'];
+  final List<String> _dartVersions = ['3.7.2', '3.7.1'];
   List<String> get dartVersions => _dartVersions;
+
+  String get latestDartVersion => _dartVersions.isNotEmpty ? _dartVersions.first : '';
 
   List<Dependency> _dependencies = [];
   List<Dependency> get dependencies => _dependencies;
@@ -74,7 +76,12 @@ mixin _StateGenerate on ChangeNotifier {
 }
 
 class GenerateViewmodel extends ChangeNotifier with _StateGenerate {
-  GenerateViewmodel(this._generateRepository);
+  GenerateViewmodel(this._generateRepository) {
+    // Define a versão mais recente do Dart como padrão
+    if (latestDartVersion.isNotEmpty) {
+      _setDartVersion(latestDartVersion);
+    }
+  }
   final GenerateRepository _generateRepository;
 
   late final fetchDependenciesCommand = Command0<List<Dependency>>(_fetchDependencies);
