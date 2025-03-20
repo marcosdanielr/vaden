@@ -24,7 +24,6 @@ class _MainAppState extends State<MainApp> {
   @override
   Widget build(BuildContext context) {
     LocalJsonLocalization.delegate.directories = ['lib/i18n'];
-
     return ListenableBuilder(
       listenable: viewmodel,
       builder: (context, child) {
@@ -43,6 +42,7 @@ class _MainAppState extends State<MainApp> {
           supportedLocales: [
             Locale('pt', 'BR'),
             Locale('en', 'US'),
+            Locale('es', 'ES'),
           ],
           localeResolutionCallback: (locale, supportedLocales) {
             Locale defaultLocale = Locale('en', 'US');
@@ -62,7 +62,7 @@ class _MainAppState extends State<MainApp> {
 
             return defaultLocale;
           },
-          home: const GeneratePage(),
+          home: GeneratePage(),
         );
       },
     );
