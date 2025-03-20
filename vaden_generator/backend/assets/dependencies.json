@@ -4,5 +4,11 @@
         "description": "Swagger (OpenAPI) is a specification for describing and documenting REST APIs.",
         "key": "openapi",
         "tag": "DOCUMENTATION"
+    },
+    {
+        "name": "WebSocket",
+        "description": "A communication protocol that provides full-duplex communication channels over a single TCP connection.",
+        "key": "websocket",
+        "tag": "MESSAGING"
     }
 ]

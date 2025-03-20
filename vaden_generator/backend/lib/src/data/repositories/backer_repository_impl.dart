@@ -13,16 +13,8 @@ class BackerRepositoryImpl implements BackerRepository {
 
   @override
   AsyncResult<Backer> check(String email) async {
-    try {
-      final response = await dio.get<Map<String, dynamic>>('/backers/charges/$email');
-      final backer = dson.fromJson<Backer>(response.data!);
-      return Success(backer);
-    } on DioException catch (e) {
-      return Failure(
-        ResponseException(e.response?.statusCode ?? 500, {
-          "error": e.response?.statusMessage ?? 'Unknow Consume Error',
-        }),
-      );
-    }
+    final response = await dio.get<Map<String, dynamic>>('/backers/charges/$email');
+    final backer = dson.fromJson<Backer>(response.data!);
+    return Success(backer);
   }
 }
