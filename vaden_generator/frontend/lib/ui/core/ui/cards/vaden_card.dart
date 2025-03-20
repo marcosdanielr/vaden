@@ -8,12 +8,13 @@ class VadenCard extends StatelessWidget {
   final String? tag;
   final bool isSelected;
   final VoidCallback? onTap;
-  final double height;
+  final double? height;
   final double width;
   final Widget? trailing;
   final BorderRadius? borderRadius;
   final EdgeInsets padding;
   final bool isEnabled;
+  final int maxLines;
 
   const VadenCard({
     super.key,
@@ -22,12 +23,13 @@ class VadenCard extends StatelessWidget {
     this.tag,
     this.isSelected = false,
     this.onTap,
-    this.height = 72,
+    this.height,
     this.width = double.infinity,
     this.trailing,
     this.borderRadius,
     this.padding = const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
     this.isEnabled = true,
+    this.maxLines = 2,
   });
 
   @override
@@ -62,18 +64,20 @@ class VadenCard extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: isSelected ? VadenColors.txtSecondary : VadenColors.txtSupport3,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: isSelected ? VadenColors.txtSecondary : VadenColors.txtSupport3,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        overflow: TextOverflow.ellipsis,
                       ),
                       if (tag != null)
                         Container(
@@ -94,7 +98,6 @@ class VadenCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      Spacer(), // Adiciona espaço flexível após o título e tag
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -104,7 +107,7 @@ class VadenCard extends StatelessWidget {
                       color: VadenColors.txtSupport3,
                       fontWeight: FontWeight.w300,
                     ),
-                    maxLines: 2,
+                    maxLines: maxLines,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
