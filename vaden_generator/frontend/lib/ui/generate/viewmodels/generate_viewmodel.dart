@@ -3,7 +3,6 @@ import 'package:result_command/result_command.dart';
 import 'package:result_dart/result_dart.dart';
 
 import '../../../data/repositories/generate_repository.dart';
-import '../../../data/services/client_http.dart';
 import '../../../domain/entities/dependency.dart';
 import '../../../domain/entities/project.dart';
 
