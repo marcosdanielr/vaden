@@ -6,125 +6,20 @@ import '../../../../domain/entities/dependency.dart';
 import '../../../generate/viewmodels/generate_viewmodel.dart';
 import '../ui.dart';
 
-/// Provides mock dependencies for testing purposes
-class VadenMockDependencies {
-  /// Returns a list of mock dependencies for testing
-  static List<Dependency> getMockDependencies() {
-    return [
-      Dependency(
-        name: 'flutter_modular',
-        description: 'Modular é um sistema de gerenciamento de rotas e injeção de dependências',
-        key: 'flutter_modular',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'mocktail',
-        description: 'Uma biblioteca de mock para testes em Dart',
-        key: 'mocktail',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'flutter_bloc',
-        description: 'Implementação do padrão BLoC para gerenciamento de estado',
-        key: 'flutter_bloc',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'dio',
-        description: 'Cliente HTTP poderoso para Dart',
-        key: 'dio',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'shared_preferences',
-        description: 'Plugin para persistência de dados simples',
-        key: 'shared_preferences',
-        tag: 'Dev Tools',
-      ),
-      // Novas dependências
-      Dependency(
-        name: 'get_it',
-        description: 'Localizador de serviços simples e poderoso para injeção de dependências',
-        key: 'get_it',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'provider',
-        description: 'Biblioteca de gerenciamento de estado recomendada pelo Flutter',
-        key: 'provider',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'riverpod',
-        description: 'Alternativa ao Provider com recursos adicionais e API mais robusta',
-        key: 'riverpod',
-        tag: 'Dev Tools',
-      ),
-      Dependency(
-        name: 'http',
-        description: 'Biblioteca para fazer requisições HTTP',
-        key: 'http',
-        tag: 'Networking',
-      ),
-      Dependency(
-        name: 'retrofit',
-        description: 'Cliente HTTP tipo-seguro para Dart, inspirado no Retrofit do Android',
-        key: 'retrofit',
-        tag: 'Networking',
-      ),
-      Dependency(
-        name: 'hive',
-        description: 'Banco de dados NoSQL leve e rápido escrito em Dart puro',
-        key: 'hive',
-        tag: 'Storage',
-      ),
-      Dependency(
-        name: 'sqflite',
-        description: 'Plugin de banco de dados SQLite para Flutter',
-        key: 'sqflite',
-        tag: 'Storage',
-      ),
-      Dependency(
-        name: 'flutter_secure_storage',
-        description: 'Armazenamento seguro para chaves e valores sensíveis',
-        key: 'flutter_secure_storage',
-        tag: 'Security',
-      ),
-      Dependency(
-        name: 'cached_network_image',
-        description: 'Biblioteca para carregar e armazenar em cache imagens da rede',
-        key: 'cached_network_image',
-        tag: 'UI',
-      ),
-      Dependency(
-        name: 'flutter_svg',
-        description: 'Plugin SVG para Flutter',
-        key: 'flutter_svg',
-        tag: 'UI',
-      ),
-    ];
-  }
-}
-
 class VadenDependenciesDialog extends StatefulWidget {
   final Function(List<Dependency>) onSave;
   final VoidCallback onCancel;
-
-  // Flag para usar dados mockados
-  final bool useMockData;
 
   const VadenDependenciesDialog({
     super.key,
     required this.onSave,
     required this.onCancel,
-    this.useMockData = false,
   });
 
   static Future<List<Dependency>?> show(
     BuildContext context,
-    GenerateViewmodel viewModel, {
-    bool useMockData = false,
-  }) async {
+    GenerateViewmodel viewModel,
+  ) async {
     return await showDialog<List<Dependency>>(
       context: context,
       barrierDismissible: true,
@@ -138,7 +33,6 @@ class VadenDependenciesDialog extends StatefulWidget {
           onCancel: () {
             Navigator.of(context).pop();
           },
-          useMockData: useMockData,
         ),
       ),
     );
@@ -155,18 +49,9 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   late final double lineHeight = 24.0 / fontSize;
   late final double letterSpacing = fontSize * 0.04;
 
-  // Mock data flag for testing
-  late bool _useMockData;
-  List<Dependency> _mockDependencies = [];
-
   @override
   void initState() {
     super.initState();
-    // Inicializar flag de mock com base no parâmetro do widget
-    _useMockData = widget.useMockData;
-
-    // Initialize mock data if needed
-    _mockDependencies = VadenMockDependencies.getMockDependencies();
 
     // Buscar dependências quando o diálogo é aberto
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -177,18 +62,22 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   void _fetchDependencies() {
     final viewModel = context.read<GenerateViewmodel>();
 
-    // If using mock data, don't fetch from API
-    if (_useMockData) {
-      setState(() {
-        _selectedDependencies = [];
-      });
-      return;
-    }
-
     // Inicializar dependências já selecionadas
     setState(() {
       _selectedDependencies = List.from(viewModel.projectDependencies);
     });
+  }
+
+  // Método para obter categorias únicas das dependências
+  List<String> _getUniqueCategories(List<Dependency> dependencies) {
+    final categories = dependencies.map((dep) => dep.tag).toSet().toList();
+    return categories.isEmpty ? ['Dev Tools'] : categories;
+  }
+
+  // Método para filtrar dependências pela categoria atual
+  List<Dependency> _getFilteredDependencies(List<Dependency> dependencies) {
+    if (dependencies.isEmpty) return [];
+    return dependencies.where((dep) => dep.tag == _currentCategory).toList();
   }
 
   void _toggleDependency(Dependency dependency) {
@@ -196,37 +85,26 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
 
     if (_selectedDependencies.contains(dependency)) {
       _selectedDependencies.remove(dependency);
-      if (!_useMockData) {
-        viewModel.removeDependencyOnProjectCommand.execute(dependency);
-      }
+      viewModel.removeDependencyOnProjectCommand.execute(dependency);
     } else {
       _selectedDependencies.add(dependency);
-      if (!_useMockData) {
-        viewModel.addDependencyOnProjectCommand.execute(dependency);
-      }
+      viewModel.addDependencyOnProjectCommand.execute(dependency);
     }
 
     // Fechar o diálogo e retornar as dependências selecionadas
     widget.onSave(_selectedDependencies);
   }
 
-  // Method to enable mock data for testing
-  void _enableMockData() {
-    setState(() {
-      _useMockData = true;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<GenerateViewmodel>(
       builder: (context, viewModel, _) {
-        final dependencies = _useMockData //
-            ? _mockDependencies //
-            : viewModel.dependencies;
-
-        if (dependencies.isNotEmpty) {
-          _currentCategory = dependencies.first.tag;
+        final dependencies = viewModel.dependencies;
+        final categories = _getUniqueCategories(dependencies);
+        
+        // Garantir que a categoria atual existe na lista de categorias
+        if (dependencies.isNotEmpty && !categories.contains(_currentCategory)) {
+          _currentCategory = categories.first;
         }
 
         return Dialog(
@@ -279,16 +157,19 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                         width: 120,
                         height: 40,
                         child: VadenDropdown(
-                          options: [
-                            'Dev Tools',
-                          ],
+                          options: categories,
                           optionsStyle: GoogleFonts.anekBangla(
                             fontSize: fontSize,
                             color: VadenColors.txtSecondary,
                             height: lineHeight * 0.5,
                             letterSpacing: letterSpacing,
                           ),
-                          selectedOption: 'Dev Tools',
+                          selectedOption: _currentCategory,
+                          onOptionSelected: (newCategory) {
+                            setState(() {
+                              _currentCategory = newCategory;
+                            });
+                          },
                         ),
                       )
                     ],
@@ -298,8 +179,8 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                 // Conteúdo do diálogo (dependendo do estado)
                 Builder(
                   builder: (context) {
-                    // Estado de carregamento - não mostrar para mock data
-                    if (!_useMockData && viewModel.fetchDependenciesCommand.isRunning) {
+                    // Estado de carregamento
+                    if (viewModel.fetchDependenciesCommand.isRunning) {
                       return Container(
                         height: 300,
                         alignment: Alignment.center,
@@ -309,8 +190,8 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                       );
                     }
 
-                    // Estado de erro - não mostrar para mock data
-                    if (!_useMockData && viewModel.fetchDependenciesCommand.isFailure) {
+                    // Estado de erro
+                    if (viewModel.fetchDependenciesCommand.isFailure) {
                       return Container(
                         height: 300,
                         alignment: Alignment.center,
@@ -367,10 +248,10 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                       child: ListView.separated(
                         shrinkWrap: true,
                         padding: const EdgeInsets.all(20),
-                        itemCount: dependencies.length,
+                        itemCount: _getFilteredDependencies(dependencies).length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final dependency = dependencies[index];
+                          final dependency = _getFilteredDependencies(dependencies)[index];
                           final isSelected = _selectedDependencies.contains(dependency);
 
                           return VadenCard(
@@ -392,16 +273,5 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
         );
       },
     );
-  }
-}
-
-/// Extension for testing purposes
-extension VadenDependenciesDialogTestExtension on VadenDependenciesDialog {
-  /// Enable mock data for testing
-  static void enableMockDataForTesting(BuildContext context) {
-    final state = context.findAncestorStateOfType<_VadenDependenciesDialogState>();
-    if (state != null) {
-      state._enableMockData();
-    }
   }
 }
