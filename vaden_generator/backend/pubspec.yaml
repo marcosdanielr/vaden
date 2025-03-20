@@ -7,7 +7,7 @@ environment:
   sdk: ^3.6.0
 
 dependencies:
-  vaden: ^0.0.4
+  vaden: ^0.0.5
   result_dart: ^2.0.0
   uuid: ^4.5.1
   archive: ^4.0.4

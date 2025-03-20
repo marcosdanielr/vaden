@@ -221,6 +221,7 @@ class AppConfiguration {
   @Bean()
   Pipeline globalMiddleware(ApplicationSettings settings) {
     return Pipeline() //
+        .addMiddleware(cors(allowedOrigins: ['*']))
         .addVadenMiddleware(EnforceJsonContentType())
         .addMiddleware(logRequests());
   }
