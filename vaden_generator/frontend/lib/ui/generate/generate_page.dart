@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../config/dependencies.dart';
 import '../core/ui/ui.dart';
+import '../widgets/internation/internation_widget.dart';
 import 'viewmodels/generate_viewmodel.dart';
 
 class GeneratePage extends StatefulWidget {
@@ -98,13 +99,7 @@ class _GeneratePageState extends State<GeneratePage> {
                       top: 0,
                       bottom: 0,
                       child: Center(
-                        child: SizedBox(
-                          width: 200,
-                          child: VadenDropdown(
-                            options: ['Portugues', 'Inlges'],
-                            selectedOption: 'Portugues',
-                          ),
-                        ),
+                        child: InternationWidget(),
                       ),
                     ),
                   ],
