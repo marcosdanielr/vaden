@@ -178,9 +178,6 @@ class _GeneratePageState extends State<GeneratePage> {
                               options: viewModel.dartVersions,
                               title: 'Dart_version'.i18n(),
                               selectedOption: 'Dart_version'.i18n(),
-                              title: 'Versão Dart',
-                              selectedOption: viewModel.latestDartVersion,
-
                               onOptionSelected: viewModel.setDartVersionProjectCommand.execute,
                               width: double.infinity,
                               fontSize: 16.0,
@@ -237,9 +234,7 @@ class _GeneratePageState extends State<GeneratePage> {
                                   height: viewModel.projectDependencies.isEmpty ? 56 : null,
                                   child: viewModel.projectDependencies.isEmpty
                                       ? VadenTextInput(
-
                                           label: 'Add_dependencies'.i18n(),
-
                                           hint: '',
                                           verticalPadding: viewModel.projectDependencies.isEmpty //
                                               ? 20
