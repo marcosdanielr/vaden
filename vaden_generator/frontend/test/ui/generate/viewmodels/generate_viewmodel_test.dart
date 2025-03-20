@@ -53,7 +53,7 @@ void main() {
   test('create project comnand', () async {
     when(() => generateRepository.createZip(any())).thenAnswer((_) async => Success(unit));
 
-    await viewmodel.createProjectCommand.execute(Project());
+    await viewmodel.createProjectCommand.execute();
 
     expect(viewmodel.createProjectCommand.isSuccess, true);
   });
