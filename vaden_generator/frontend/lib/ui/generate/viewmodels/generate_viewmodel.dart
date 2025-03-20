@@ -36,9 +36,9 @@ mixin _StateGenerate on ChangeNotifier {
     if (project.dartVersion.isEmpty) {
       return false;
     }
-    if (project.dependencies.isEmpty) {
-      return false;
-    }
+    // if (project.dependencies.isEmpty) {
+    //   return false;
+    // }
     return true;
   }
 
