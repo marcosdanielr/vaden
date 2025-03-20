@@ -460,10 +460,9 @@ extension VadenButtonExtension on VadenButton {
         ? Colors.transparent //
         : backgroundColor;
 
-    // Para outlined, se borderColor não for especificado mas textColor for,
-    // usar textColor como borderColor
+    // Para outlined, se textColor for não nulo, usar textColor como borderColor
     final effectiveBorderColor =
-        style == VadenButtonStyle.outlined && borderColor == null && textColor != null
+        style == VadenButtonStyle.outlined && textColor != null
             ? textColor
             : borderColor;
 
