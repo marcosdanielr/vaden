@@ -14,6 +14,7 @@ class VadenColors {
   static const Color focusColor = Color(0xFF4D7DD6);
   static const Color errorColor = Color(0xFFFf0004);
   static const Color successColor = Color(0xFF34c759);
+  static const Color productionColor = Color(0xFF109732);
   static const Color alertColor = Color(0xFFFFBB00);
   static const Color headerTableColor = Color(0xFFECECED);
   static const Color mainCardColor = Color(0xFFF8F8F9);
