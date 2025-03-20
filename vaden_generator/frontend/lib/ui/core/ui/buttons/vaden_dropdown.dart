@@ -271,6 +271,7 @@ class _VadenDropdownState extends State<VadenDropdown> {
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.title != null)
           Padding(
@@ -291,9 +292,10 @@ class _VadenDropdownState extends State<VadenDropdown> {
             key: _dropdownKey,
             onTap: _toggleDropdown,
             child: Container(
+              height: 40,
               padding: const EdgeInsets.symmetric(
                 horizontal: 16,
-                vertical: 12,
+                vertical: 8,
               ),
               decoration: BoxDecoration(
                 color: Colors.black,
