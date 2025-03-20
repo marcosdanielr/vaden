@@ -78,11 +78,11 @@ environment:
   sdk: ^{{dartVersion}}
 
 dependencies:
-  vaden: ^1.0.0
+  vaden: ^0.0.5
 
 dev_dependencies:
   build_runner: ^2.4.14
-  vaden_class_scanner: ^1.0.0
+  vaden_class_scanner: ^0.0.4
 ''';
 
 const _readmeContent = '''# {{name}}
