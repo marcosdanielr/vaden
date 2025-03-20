@@ -3,8 +3,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../config/dependencies.dart';
-import '../../domain/entities/project.dart';
-import '../core/themes/colors.dart';
 import '../core/ui/ui.dart';
 import '../core/ui/cards/vaden_dependencies_card.dart';
 import 'viewmodels/generate_viewmodel.dart';
@@ -28,46 +26,17 @@ class _GeneratePageState extends State<GeneratePage> {
   final _projectNameEC = TextEditingController();
   final _projectDescriptionEC = TextEditingController();
 
-  // Flag para controlar se deve usar dados mockados
-  bool _useMockData = false;
-
   @override
   void initState() {
     super.initState();
     viewModel.fetchDependenciesCommand.execute();
   }
 
-  // Método para abrir o diálogo de dependências
   Future<void> _openDependenciesDialog() async {
     final result = await VadenDependenciesDialog.show(context, viewModel);
 
-    // Processar o resultado se necessário
     if (result != null) {
-      // As dependências já são adicionadas ao viewModel no diálogo
       setState(() {});
-      debugPrint('Dependências selecionadas: ${result.length}');
-    }
-  }
-
-  // Método para abrir o diálogo com dados mockados
-  Future<void> _openDependenciesDialogWithMockData() async {
-    // Abrir o diálogo diretamente com dados mockados
-    final dialogResult = await VadenDependenciesDialog.show(
-      context,
-      viewModel,
-      useMockData: true,
-    );
-
-    // Processar o resultado se necessário
-    if (dialogResult != null) {
-      // Adicionar as dependências mockadas ao viewModel
-      for (final dependency in dialogResult) {
-        if (!viewModel.projectDependencies.contains(dependency)) {
-          viewModel.addDependencyOnProjectCommand.execute(dependency);
-        }
-      }
-      setState(() {});
-      debugPrint('Dependências mockadas selecionadas: ${dialogResult.length}');
     }
   }
 
@@ -126,7 +95,6 @@ class _GeneratePageState extends State<GeneratePage> {
                 height: 60,
                 child: Stack(
                   children: [
-                    // Centered title
                     Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -149,7 +117,6 @@ class _GeneratePageState extends State<GeneratePage> {
                         ],
                       ),
                     ),
-                    // Positioned dropdown
                     Positioned(
                       right: 48,
                       top: 0,
@@ -300,14 +267,7 @@ class _GeneratePageState extends State<GeneratePage> {
                                 height: 56,
                                 child: VadenButtonExtension.primary(
                                   title: 'Adicionar',
-                                  onPressed: () {
-                                    // Usar dados mockados ou reais com base na flag
-                                    if (_useMockData) {
-                                      _openDependenciesDialogWithMockData();
-                                    } else {
-                                      _openDependenciesDialog();
-                                    }
-                                  },
+                                  onPressed: _openDependenciesDialog,
                                   icon: null,
                                   width: 120,
                                 ),
@@ -335,7 +295,8 @@ class _GeneratePageState extends State<GeneratePage> {
                                         width: width,
                                         isLoading: viewModel.createProjectCommand.isRunning,
                                       );
-                                    })
+                                    },
+                                  )
                                 : VadenButtonExtension.outlined(
                                     title: title,
                                     onPressed: () {},
