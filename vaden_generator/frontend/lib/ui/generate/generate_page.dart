@@ -26,11 +26,19 @@ class _GeneratePageState extends State<GeneratePage> {
 
   final _projectNameEC = TextEditingController();
   final _projectDescriptionEC = TextEditingController();
+  String? _projectNameError;
 
   @override
   void initState() {
     super.initState();
     viewModel.fetchDependenciesCommand.execute();
+  }
+
+  @override
+  void dispose() {
+    _projectNameEC.dispose();
+    _projectDescriptionEC.dispose();
+    super.dispose();
   }
 
   Future<void> _openDependenciesDialog() async {
@@ -145,8 +153,15 @@ class _GeneratePageState extends State<GeneratePage> {
                             label: 'Project_name'.i18n(),
                             hint: 'Vaden_Backend'.i18n(),
                             controller: _projectNameEC,
-                            onChanged: viewModel.setNameProjectCommand.execute,
+                            onChanged: (value) {
+                              final validation = viewModel.validateProjectName(value);
+                              setState(() {
+                                _projectNameError = validation;
+                              });
+                              viewModel.setNameProjectCommand.execute(value);
+                            },
                             verticalPadding: 20,
+                            errorText: _projectNameError,
                           ),
                           const SizedBox(height: 32),
                           VadenTextInput(
@@ -163,7 +178,12 @@ class _GeneratePageState extends State<GeneratePage> {
                               options: viewModel.dartVersions,
                               title: 'Dart_version'.i18n(),
                               selectedOption: 'Dart_version'.i18n(),
+                              title: 'Versão Dart',
+                              selectedOption: viewModel.latestDartVersion,
+
                               onOptionSelected: viewModel.setDartVersionProjectCommand.execute,
+                              width: double.infinity,
+                              fontSize: 16.0,
                             ),
                           )
                         ],
@@ -217,7 +237,9 @@ class _GeneratePageState extends State<GeneratePage> {
                                   height: viewModel.projectDependencies.isEmpty ? 56 : null,
                                   child: viewModel.projectDependencies.isEmpty
                                       ? VadenTextInput(
+
                                           label: 'Add_dependencies'.i18n(),
+
                                           hint: '',
                                           verticalPadding: viewModel.projectDependencies.isEmpty //
                                               ? 20

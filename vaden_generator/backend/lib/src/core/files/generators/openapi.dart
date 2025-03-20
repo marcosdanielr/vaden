@@ -13,12 +13,12 @@ class OpenAPIGenerator extends FileGenerator {
     final libConfigOpenapiOpenapiConfiguration =
         File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}config${Platform.pathSeparator}openapi${Platform.pathSeparator}openapi_configuration.dart');
     await libConfigOpenapiOpenapiConfiguration.create(recursive: true);
-    await libConfigOpenapiOpenapiConfiguration.writeAsString(parseVariables(libConfigOpenapiOpenapiConfigurationContent, variables));
+    await libConfigOpenapiOpenapiConfiguration.writeAsString(parseVariables(_libConfigOpenapiOpenapiConfigurationContent, variables));
 
     final libConfigOpenapiOpenapiController =
         File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}config${Platform.pathSeparator}openapi${Platform.pathSeparator}openapi_controller.dart');
     await libConfigOpenapiOpenapiController.create(recursive: true);
-    await libConfigOpenapiOpenapiController.writeAsString(libConfigOpenapiOpenapiControllerContent);
+    await libConfigOpenapiOpenapiController.writeAsString(_libConfigOpenapiOpenapiControllerContent);
 
     final helloController = File('${directory.path}${Platform.pathSeparator}lib${Platform.pathSeparator}src${Platform.pathSeparator}hello_controller.dart');
     await fileManager.insertLineInFile(
@@ -30,7 +30,7 @@ class OpenAPIGenerator extends FileGenerator {
   }
 }
 
-const libConfigOpenapiOpenapiConfigurationContent = '''import 'dart:convert';
+const _libConfigOpenapiOpenapiConfigurationContent = '''import 'dart:convert';
 
 import 'package:vaden/vaden.dart';
 import 'package:vaden/vaden_openapi.dart';
@@ -72,7 +72,7 @@ class OpenApiConfiguration {
 
 ''';
 
-const libConfigOpenapiOpenapiControllerContent = '''import 'dart:async';
+const _libConfigOpenapiOpenapiControllerContent = '''import 'dart:async';
 
 import 'package:vaden/vaden.dart';
 import 'package:vaden/vaden_openapi.dart' hide Response;

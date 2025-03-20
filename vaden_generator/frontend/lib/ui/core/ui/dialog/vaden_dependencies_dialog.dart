@@ -45,7 +45,7 @@ class VadenDependenciesDialog extends StatefulWidget {
 
 class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   List<Dependency> _selectedDependencies = [];
-  String _currentCategory = 'Dev Tools';
+  String _currentCategory = 'Todos';
   final double fontSize = 12.0;
   late final double lineHeight = 24.0 / fontSize;
   late final double letterSpacing = fontSize * 0.04;
@@ -72,12 +72,16 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
   // Método para obter categorias únicas das dependências
   List<String> _getUniqueCategories(List<Dependency> dependencies) {
     final categories = dependencies.map((dep) => dep.tag).toSet().toList();
-    return categories.isEmpty ? ['Dev Tools'] : categories;
+    return [
+      'Todos',
+      ...categories.isEmpty ? ['Dev Tools'] : categories
+    ];
   }
 
   // Método para filtrar dependências pela categoria atual
   List<Dependency> _getFilteredDependencies(List<Dependency> dependencies) {
     if (dependencies.isEmpty) return [];
+    if (_currentCategory == 'Todos') return dependencies;
     return dependencies.where((dep) => dep.tag == _currentCategory).toList();
   }
 
@@ -154,11 +158,19 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                           ),
                         ],
                       ),
-                      SizedBox(
-                        width: 120,
+                      Container(
                         height: 40,
+                        constraints: BoxConstraints(
+                          minWidth: 120,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                         child: VadenDropdown(
                           options: categories,
+                          height: 36,
+                          fontSize: 12.0,
+                          dynamicWidth: true,
                           optionsStyle: GoogleFonts.anekBangla(
                             fontSize: fontSize,
                             color: VadenColors.txtSecondary,
@@ -261,7 +273,7 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
                             tag: dependency.tag,
                             isSelected: isSelected,
                             onTap: () => _toggleDependency(dependency),
-                            height: 72,
+                            maxLines: 3,
                           );
                         },
                       ),
