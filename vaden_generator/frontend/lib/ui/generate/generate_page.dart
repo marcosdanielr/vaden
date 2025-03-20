@@ -165,7 +165,7 @@ class _GeneratePageState extends State<GeneratePage> {
                             child: VadenDropdown(
                               options: viewModel.dartVersions,
                               title: 'Versão Dart',
-                              selectedOption: 'Versão Dart',
+                              selectedOption: viewModel.latestDartVersion,
                               onOptionSelected: viewModel.setDartVersionProjectCommand.execute,
                             ),
                           )
