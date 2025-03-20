@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../config/dependencies.dart';
 import '../core/ui/ui.dart';
-import '../core/ui/cards/vaden_dependencies_card.dart';
 import 'viewmodels/generate_viewmodel.dart';
 
 class GeneratePage extends StatefulWidget {
@@ -55,35 +54,12 @@ class _GeneratePageState extends State<GeneratePage> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: PreferredSize(
-          preferredSize: Size.fromHeight(kToolbarHeight),
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  VadenColors.gradientStart,
-                  VadenColors.gradientEnd,
-                ],
-              ),
-            ),
-            child: AppBar(
-              title: Text(
-                'IN DEVELOPMENT',
-                style: GoogleFonts.anekBangla(
-                  color: VadenColors.txtSecondary,
-                  fontSize: fontSize,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: letterSpacing,
-                  height: lineHeight,
-                ),
-              ),
-              centerTitle: true,
-              backgroundColor: Colors.transparent,
-              elevation: 0,
-            ),
-          ),
+        appBar: VadenAppBar(
+          title: 'IN DEVELOPMENT',
+          mode: VadenAppBarMode.development, // Pode ser alterado para .production
+          fontSize: fontSize,
+          letterSpacing: letterSpacing,
+          lineHeight: lineHeight,
         ),
         body: SingleChildScrollView(
           child: Column(
