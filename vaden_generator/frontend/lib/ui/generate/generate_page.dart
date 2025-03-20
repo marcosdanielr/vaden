@@ -101,8 +101,8 @@ class _GeneratePageState extends State<GeneratePage> {
                         child: SizedBox(
                           width: 200,
                           child: VadenDropdown(
-                            options: ['Portugues', 'Ingles'],
-                            selectedOption: 'Portugues',
+                            options: ['Português', 'Inglês'],
+                            selectedOption: 'Português',
                             width: 200,
                             fontSize: 16.0,
                           ),
@@ -187,7 +187,7 @@ class _GeneratePageState extends State<GeneratePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Dependencias',
+                        'Dependências',
                         style: GoogleFonts.anekBangla(
                           color: VadenColors.txtSecondary,
                           fontSize: 20,
@@ -224,7 +224,7 @@ class _GeneratePageState extends State<GeneratePage> {
                                   height: viewModel.projectDependencies.isEmpty ? 56 : null,
                                   child: viewModel.projectDependencies.isEmpty
                                       ? VadenTextInput(
-                                          label: 'Adicionar dependencias',
+                                          label: 'Adicionar dependências',
                                           hint: '',
                                           verticalPadding: viewModel.projectDependencies.isEmpty //
                                               ? 20
