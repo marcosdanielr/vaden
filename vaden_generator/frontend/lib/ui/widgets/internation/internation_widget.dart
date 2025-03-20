@@ -7,6 +7,7 @@ import '../../core/ui/buttons/vaden_dropdown.dart';
 
 enum I18n {
   enUS(Locale('en', 'US'), 'English'),
+  esES(Locale('es', 'ES'), 'Spanish'),
   ptBR(Locale('pt', 'BR'), 'Portuguese');
 
   final Locale locale;
