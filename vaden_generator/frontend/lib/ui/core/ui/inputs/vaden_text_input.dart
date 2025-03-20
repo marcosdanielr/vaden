@@ -63,12 +63,17 @@ class _VadenTextInputState extends State<VadenTextInput> {
         onChanged: widget.onChanged,
         inputFormatters: widget.inputFormatters,
         style: widget.isEnabled
-            ? theme.textTheme.bodyLarge
+            ? theme.textTheme.bodyLarge!.copyWith(
+                color: VadenColors.whiteColor,
+              )
             : theme.textTheme.bodyLarge!.copyWith(
                 color: VadenColors.txtDisabled,
               ),
         decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: widget.verticalPadding, horizontal: 12),
+          contentPadding: EdgeInsets.symmetric(
+            vertical: widget.verticalPadding,
+            horizontal: 12,
+          ),
           labelText: widget.label,
           labelStyle: widget.labelStyle ??
               theme.textTheme.bodyLarge!.copyWith(

@@ -42,12 +42,14 @@ class Project {
       map['description'] ?? '',
       map['dartVersion'] ?? '',
       List<Dependency>.from(
-          map['dependencies']?.map((x) => Dependency.fromMap(x))),
+        map['dependencies']?.map(
+          (x) => Dependency.fromMap(x),
+        ),
+      ),
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory Project.fromJson(String source) =>
-      Project.fromMap(json.decode(source));
+  factory Project.fromJson(String source) => Project.fromMap(json.decode(source));
 }
