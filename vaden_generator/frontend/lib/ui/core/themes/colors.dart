@@ -14,6 +14,7 @@ class VadenColors {
   static const Color focusColor = Color(0xFF4D7DD6);
   static const Color errorColor = Color(0xFFFf0004);
   static const Color successColor = Color(0xFF34c759);
+  static const Color productionColor = Color(0xFF109732);
   static const Color alertColor = Color(0xFFFFBB00);
   static const Color headerTableColor = Color(0xFFECECED);
   static const Color mainCardColor = Color(0xFFF8F8F9);
@@ -21,6 +22,7 @@ class VadenColors {
   static const Color disabledColor = Color(0xFFB6B6B6);
   static const Color supportColor = Color(0xFF717171);
   static const Color supportColor2 = Color(0xFF737077);
+  static const Color dialogBgColor = Color(0xFF19171C);
 
   // Text Colors
   static const Color txtPrimary = primaryColor;
@@ -52,4 +54,6 @@ class VadenColors {
   // Gradient Colors
   static const Color gradientStart = Color(0xFF7C1334);
   static const Color gradientEnd = Color(0xFFC30F28);
+  static const Color blackGradientEnd = Color(0xFF19171C);
+  static const Color blackGradientStart = blackColor;
 }

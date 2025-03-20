@@ -58,6 +58,7 @@ class RemoteGenerateRepository implements GenerateRepository {
       final List<Dependency> dependencies = (response.data as List)
           .map((dependencyMap) => Dependency.fromMap(dependencyMap))
           .toList();
+          
       return Success(dependencies);
     } catch (e) {
       return Failure(

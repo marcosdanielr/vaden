@@ -1,24 +1,21 @@
 import 'package:flutter/material.dart';
 import '../../themes/colors.dart';
+import 'dart:math' as math;
 
 class VadenDropdown extends StatefulWidget {
-  /// Título do dropdown (opcional)
   final String? title;
-
-  /// Texto de placeholder quando nenhuma opção estiver selecionada
   final String placeholder;
-
-  /// Lista de opções disponíveis no dropdown
   final List<String> options;
-
-  /// Opção atualmente selecionada
   final String? selectedOption;
-
-  /// Callback chamado quando uma opção é selecionada
   final Function(String)? onOptionSelected;
-
-  /// Se o dropdown está habilitado ou não
   final bool isEnabled;
+  final TextStyle? textStyle;
+  final TextStyle? titleStyle;
+  final TextStyle? optionsStyle;
+  final double? height;
+  final double? width;
+  final double fontSize;
+  final bool dynamicWidth;
 
   const VadenDropdown({
     super.key,
@@ -28,6 +25,13 @@ class VadenDropdown extends StatefulWidget {
     this.selectedOption,
     this.onOptionSelected,
     this.isEnabled = true,
+    this.textStyle,
+    this.titleStyle,
+    this.optionsStyle,
+    this.height,
+    this.width,
+    this.fontSize = 16.0,
+    this.dynamicWidth = false,
   });
 
   @override
@@ -40,27 +44,25 @@ class _VadenDropdownState extends State<VadenDropdown> {
   OverlayEntry? _overlayEntry;
   final GlobalKey _dropdownKey = GlobalKey();
 
-  // Armazenar a opção selecionada internamente
   String? _selectedOption;
 
   @override
   void initState() {
     super.initState();
-    // Inicializa com a opção selecionada do widget
+
     _selectedOption = widget.selectedOption;
   }
 
   @override
   void didUpdateWidget(VadenDropdown oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Atualiza a seleção interna quando a propriedade muda externamente
+
     if (widget.selectedOption != oldWidget.selectedOption) {
       _selectedOption = widget.selectedOption;
 
-      // Recria o overlay se estiver aberto para refletir a nova seleção
       if (_isDropdownOpen) {
         _removeOverlay();
-        // Use a post-frame callback to show the overlay after the build is complete
+
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted) {
             _showOverlay();
@@ -84,7 +86,6 @@ class _VadenDropdownState extends State<VadenDropdown> {
     });
 
     if (_isDropdownOpen) {
-      // Use a post-frame callback to show the overlay after the build is complete
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
           _showOverlay();
@@ -106,23 +107,19 @@ class _VadenDropdownState extends State<VadenDropdown> {
   }
 
   void _selectOption(String option) {
-    // Atualiza a seleção internamente
     setState(() {
       _selectedOption = option;
     });
 
-    // Notifica o pai sobre a mudança
     if (widget.onOptionSelected != null) {
       widget.onOptionSelected!(option);
     }
 
-    // Update the overlay entry to reflect the new selection without closing/reopening
     if (_isDropdownOpen && _overlayEntry != null) {
       _overlayEntry!.markNeedsBuild();
     }
   }
 
-  // Widget para criar a bolinha de seleção com anel e degradê
   Widget _buildSelectionIndicator() {
     return SizedBox(
       width: 24,
@@ -130,7 +127,6 @@ class _VadenDropdownState extends State<VadenDropdown> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Anel externo com degradê
           Container(
             width: 24,
             height: 24,
@@ -146,7 +142,6 @@ class _VadenDropdownState extends State<VadenDropdown> {
               ),
             ),
           ),
-          // Círculo preto interno para criar o efeito de anel
           Container(
             width: 18,
             height: 18,
@@ -155,7 +150,6 @@ class _VadenDropdownState extends State<VadenDropdown> {
               color: Colors.black,
             ),
           ),
-          // Círculo interno com degradê
           Container(
             width: 12,
             height: 12,
@@ -177,16 +171,43 @@ class _VadenDropdownState extends State<VadenDropdown> {
   }
 
   OverlayEntry _createOverlayEntry() {
-    // Obtém o RenderBox do dropdown para calcular posicionamento
     final RenderBox renderBox = _dropdownKey.currentContext!.findRenderObject() as RenderBox;
     final size = renderBox.size;
 
+    // Calcular a largura máxima necessária para as opções
+    double maxTextWidth = 0;
+    if (widget.dynamicWidth) {
+      final TextStyle textStyle = widget.optionsStyle ??
+          widget.textStyle ??
+          TextStyle(
+            color: VadenColors.whiteColor,
+            fontSize: widget.fontSize,
+          );
+
+      final TextPainter textPainter = TextPainter(
+        textDirection: TextDirection.ltr,
+        textScaleFactor: MediaQuery.of(_dropdownKey.currentContext!).textScaleFactor,
+      );
+
+      for (final option in widget.options) {
+        textPainter.text = TextSpan(text: option, style: textStyle);
+        textPainter.layout();
+        if (textPainter.width > maxTextWidth) {
+          maxTextWidth = textPainter.width;
+        }
+      }
+
+      // Adicionar espaço para o ícone e padding
+      maxTextWidth += 80; // 24px para o ícone + 16px padding de cada lado + 24px margem extra
+    }
+
+    // Usar a maior largura entre o dropdown e o texto mais longo
+    final dropdownWidth = widget.dynamicWidth ? math.max(size.width, maxTextWidth) : size.width;
+
     return OverlayEntry(
       builder: (context) => GestureDetector(
-        // Fecha o dropdown quando clicar fora dele
         behavior: HitTestBehavior.translucent,
         onTap: () {
-          // Close the dropdown when tapping outside
           setState(() {
             _isDropdownOpen = false;
           });
@@ -200,14 +221,13 @@ class _VadenDropdownState extends State<VadenDropdown> {
               ),
             ),
             Positioned(
-              width: size.width,
+              width: dropdownWidth,
               child: CompositedTransformFollower(
                 link: _layerLink,
                 showWhenUnlinked: false,
                 offset: Offset(0, size.height + 4),
                 child: GestureDetector(
-                  // Prevent taps on the dropdown menu from closing it
-                  onTap: () {}, // Empty callback to prevent propagation
+                  onTap: () {},
                   child: Material(
                     elevation: 8,
                     color: Colors.transparent,
@@ -215,12 +235,13 @@ class _VadenDropdownState extends State<VadenDropdown> {
                     child: Container(
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.3,
+                        minWidth: dropdownWidth,
                       ),
                       decoration: BoxDecoration(
                         color: Colors.black,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: VadenColors.whiteColor,
+                          color: VadenColors.txtSupport2,
                           width: 1,
                         ),
                       ),
@@ -236,20 +257,28 @@ class _VadenDropdownState extends State<VadenDropdown> {
                           return InkWell(
                             onTap: () => _selectOption(option),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               child: Row(
+                                mainAxisSize:
+                                    widget.dynamicWidth ? MainAxisSize.min : MainAxisSize.max,
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Expanded(
+                                  Flexible(
                                     child: Text(
                                       option,
-                                      style: const TextStyle(
-                                        color: VadenColors.whiteColor,
-                                        fontSize: 16,
-                                      ),
+                                      style: widget.optionsStyle ??
+                                          widget.textStyle ??
+                                          TextStyle(
+                                            color: VadenColors.whiteColor,
+                                            fontSize: widget.fontSize,
+                                          ),
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
+                                  SizedBox(width: 8),
                                   isSelected
                                       ? _buildSelectionIndicator()
                                       : Container(
@@ -258,7 +287,7 @@ class _VadenDropdownState extends State<VadenDropdown> {
                                           decoration: BoxDecoration(
                                             shape: BoxShape.circle,
                                             border: Border.all(
-                                              color: VadenColors.whiteColor,
+                                              color: VadenColors.txtSupport2,
                                               width: 1,
                                             ),
                                           ),
@@ -282,52 +311,57 @@ class _VadenDropdownState extends State<VadenDropdown> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    // Tamanho de fonte configurável
+    final defaultTextStyle = TextStyle(
+      color: widget.isEnabled ? VadenColors.whiteColor : VadenColors.disabledColor,
+      fontSize: widget.fontSize,
+    );
+
+    final dropdownContent = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Título opcional
         if (widget.title != null)
           Padding(
             padding: const EdgeInsets.only(left: 8.0, bottom: 4.0),
             child: Text(
               widget.title!,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-              ),
+              style: widget.titleStyle ??
+                  widget.textStyle ??
+                  defaultTextStyle.copyWith(color: Colors.white70),
             ),
           ),
-
-        // Cabeçalho do dropdown
         CompositedTransformTarget(
           link: _layerLink,
           child: GestureDetector(
             key: _dropdownKey,
             onTap: _toggleDropdown,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              height: widget.height ?? 56,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 8,
+              ),
               decoration: BoxDecoration(
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: widget.isEnabled ? VadenColors.whiteColor : VadenColors.txtSupport2,
+                  color: VadenColors.txtSupport2,
                   width: 1,
                 ),
               ),
               child: Row(
+                mainAxisSize: widget.dynamicWidth ? MainAxisSize.min : MainAxisSize.max,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Expanded(
+                  Flexible(
                     child: Text(
                       _selectedOption ?? widget.placeholder,
-                      style: TextStyle(
-                        color:
-                            widget.isEnabled ? VadenColors.whiteColor : VadenColors.disabledColor,
-                        fontSize: 16,
-                      ),
+                      style: widget.textStyle ?? defaultTextStyle,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  SizedBox(width: 8),
                   Container(
                     width: 24,
                     height: 24,
@@ -344,7 +378,9 @@ class _VadenDropdownState extends State<VadenDropdown> {
                         _isDropdownOpen
                             ? Icons.keyboard_arrow_up_rounded
                             : Icons.keyboard_arrow_down_rounded,
-                        color: widget.isEnabled ? VadenColors.whiteColor : VadenColors.txtSupport2,
+                        color: widget.isEnabled //
+                            ? VadenColors.whiteColor //
+                            : VadenColors.txtSupport2,
                         size: 16,
                       ),
                     ),
@@ -355,6 +391,17 @@ class _VadenDropdownState extends State<VadenDropdown> {
           ),
         ),
       ],
+    );
+
+    // Se a largura for dinâmica, não envolva em um SizedBox
+    if (widget.dynamicWidth) {
+      return dropdownContent;
+    }
+
+    // Caso contrário, use um SizedBox com largura fixa (comportamento original)
+    return SizedBox(
+      width: widget.width,
+      child: dropdownContent,
     );
   }
 }

@@ -249,36 +249,42 @@ class VadenButton extends StatelessWidget {
       );
     }
 
-    // Criar ícone com ou sem gradiente
-    Widget? iconWidget;
-    if (icon != null) {
-      if (textGradient != null) {
-        iconWidget = ShaderMask(
-          shaderCallback: (bounds) => textGradient.createShader(bounds),
-          child: Icon(
-            icon,
-            size: iconSize,
-            color: Colors.white,
-          ),
-        );
-      } else {
-        iconWidget = Icon(
-          icon,
-          size: iconSize,
-          color: iconColor,
-        );
-      }
+    // Se não tiver ícone, apenas centraliza o texto
+    if (icon == null) {
+      return Center(
+        child: textWidget,
+      );
     }
 
+    // Criar ícone com ou sem gradiente
+    Widget iconWidget;
+    if (textGradient != null) {
+      iconWidget = ShaderMask(
+        shaderCallback: (bounds) => textGradient.createShader(bounds),
+        child: Icon(
+          icon,
+          size: iconSize,
+          color: Colors.white,
+        ),
+      );
+    } else {
+      iconWidget = Icon(
+        icon,
+        size: iconSize,
+        color: iconColor,
+      );
+    }
+
+    // Se tiver ícone, usa o layout original com Row
     return Row(
       mainAxisAlignment: centerText ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
       children: [
         if (centerText) const Spacer(),
         textWidget,
         if (centerText) const Spacer(),
-        if (icon != null && !centerText)
-          iconWidget!
-        else if (centerText && icon != null)
+        if (!centerText)
+          iconWidget
+        else
           Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: iconWidget,
@@ -337,6 +343,8 @@ extension VadenButtonExtension on VadenButton {
               ? VadenButtonState.disabled
               : VadenButtonState.normal,
       color: VadenButtonColor.gradient,
+      centerText: true,
+      textStyle: VadenTextStyle.normal,
     );
   }
 
@@ -452,10 +460,9 @@ extension VadenButtonExtension on VadenButton {
         ? Colors.transparent //
         : backgroundColor;
 
-    // Para outlined, se borderColor não for especificado mas textColor for,
-    // usar textColor como borderColor
+    // Para outlined, se textColor for não nulo, usar textColor como borderColor
     final effectiveBorderColor =
-        style == VadenButtonStyle.outlined && borderColor == null && textColor != null
+        style == VadenButtonStyle.outlined && textColor != null
             ? textColor
             : borderColor;
 

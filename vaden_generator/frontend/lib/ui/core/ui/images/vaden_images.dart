@@ -2,6 +2,7 @@ class VadenImage {
   // Base path
   static const String iconsPath = 'assets/icons';
   static const String logosPath = 'assets/logo';
+  static const String bgPath = 'assets/bg';
 
   // Logo
   static const String vadenLogo = '$logosPath/vaden_logo.svg';
@@ -13,4 +14,7 @@ class VadenImage {
   static const String gradleIcon = '$iconsPath/gradle_deselected.svg';
   static const String marvenIcon = '$iconsPath/marven.svg';
   static const String marvenIconDeselected = '$iconsPath/marven_deselected.svg';
+
+  // Background
+  static const String customBgCurve = '$bgPath/custom_bg_curve.svg';
 }

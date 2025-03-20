@@ -29,8 +29,8 @@ class Project {
 
   Map<String, dynamic> toMap() {
     return {
-      'name': name,
-      'description': description,
+      'projectName': name,
+      'projectDescription': description,
       'dartVersion': dartVersion,
       'dependencies': dependencies.map((x) => x.toMap()).toList(),
     };
@@ -38,16 +38,18 @@ class Project {
 
   factory Project.fromMap(Map<String, dynamic> map) {
     return Project._(
-      map['name'] ?? '',
-      map['description'] ?? '',
+      map['projectName'] ?? '',
+      map['projectDescription'] ?? '',
       map['dartVersion'] ?? '',
       List<Dependency>.from(
-          map['dependencies']?.map((x) => Dependency.fromMap(x))),
+        map['dependencies']?.map(
+          (x) => Dependency.fromMap(x),
+        ),
+      ),
     );
   }
 
   String toJson() => json.encode(toMap());
 
-  factory Project.fromJson(String source) =>
-      Project.fromMap(json.decode(source));
+  factory Project.fromJson(String source) => Project.fromMap(json.decode(source));
 }
