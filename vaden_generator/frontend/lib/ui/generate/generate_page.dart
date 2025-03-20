@@ -24,11 +24,19 @@ class _GeneratePageState extends State<GeneratePage> {
 
   final _projectNameEC = TextEditingController();
   final _projectDescriptionEC = TextEditingController();
+  String? _projectNameError;
 
   @override
   void initState() {
     super.initState();
     viewModel.fetchDependenciesCommand.execute();
+  }
+
+  @override
+  void dispose() {
+    _projectNameEC.dispose();
+    _projectDescriptionEC.dispose();
+    super.dispose();
   }
 
   Future<void> _openDependenciesDialog() async {
@@ -148,10 +156,17 @@ class _GeneratePageState extends State<GeneratePage> {
                         children: [
                           VadenTextInput(
                             label: 'Nome do projeto',
-                            hint: 'Vaden Backend',
+                            hint: 'vaden_backend',
                             controller: _projectNameEC,
-                            onChanged: viewModel.setNameProjectCommand.execute,
+                            onChanged: (value) {
+                              final validation = viewModel.validateProjectName(value);
+                              setState(() {
+                                _projectNameError = validation;
+                              });
+                              viewModel.setNameProjectCommand.execute(value);
+                            },
                             verticalPadding: 20,
+                            errorText: _projectNameError,
                           ),
                           const SizedBox(height: 32),
                           VadenTextInput(
