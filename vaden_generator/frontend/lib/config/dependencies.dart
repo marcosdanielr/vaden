@@ -1,10 +1,11 @@
 import 'package:auto_injector/auto_injector.dart';
-import 'constants.dart';
+
 import '../data/repositories/generate_repository.dart';
 import '../data/repositories/remote_generate_repository.dart';
 import '../data/services/client_http.dart';
 import '../data/services/url_launcher_service.dart';
 import '../ui/generate/viewmodels/generate_viewmodel.dart';
+import 'constants.dart';
 
 final injector = AutoInjector();
 
