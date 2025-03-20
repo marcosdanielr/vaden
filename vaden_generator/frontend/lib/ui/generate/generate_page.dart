@@ -3,6 +3,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../config/dependencies.dart';
+import '../../domain/entities/project.dart';
 import '../core/themes/colors.dart';
 import '../core/ui/ui.dart';
 import '../core/ui/cards/vaden_dependencies_card.dart';
@@ -204,6 +205,7 @@ class _GeneratePageState extends State<GeneratePage> {
                             label: 'Nome do projeto',
                             hint: 'Vaden Backend',
                             controller: _projectNameEC,
+                            onChanged: viewModel.setNameProjectCommand.execute,
                             verticalPadding: 20,
                           ),
                           const SizedBox(height: 32),
@@ -211,6 +213,7 @@ class _GeneratePageState extends State<GeneratePage> {
                             label: 'Descrição',
                             hint: 'Projeto Vaden',
                             controller: _projectDescriptionEC,
+                            onChanged: viewModel.setDescriptionProjectCommand.execute,
                             verticalPadding: 20,
                           ),
                           const SizedBox(height: 32),
@@ -220,6 +223,7 @@ class _GeneratePageState extends State<GeneratePage> {
                               options: viewModel.dartVersions,
                               title: 'Versão Dart',
                               selectedOption: 'Versão Dart',
+                              onOptionSelected: viewModel.setDartVersionProjectCommand.execute,
                             ),
                           )
                         ],
@@ -313,14 +317,34 @@ class _GeneratePageState extends State<GeneratePage> {
                         ],
                       ),
                       const SizedBox(height: 80),
-                      Center(
-                        child: VadenButtonExtension.outlined(
-                          title: 'Gerar projeto',
-                          onPressed: () {},
-                          icon: null,
-                          width: 320,
-                          borderColor: VadenColors.stkWhite,
-                        ),
+                      ListenableBuilder(
+                        listenable: viewModel,
+                        builder: (context, child) {
+                          final String title = 'Gerar projeto';
+                          final double width = 320;
+
+                          return Center(
+                            child: viewModel.projectIsValid()
+                                ? ListenableBuilder(
+                                    listenable: viewModel.createProjectCommand,
+                                    builder: (context, child) {
+                                      return VadenButtonExtension.primary(
+                                        title: title,
+                                        onPressed: () => viewModel.createProjectCommand.execute(),
+                                        icon: null,
+                                        width: width,
+                                        isLoading: viewModel.createProjectCommand.isRunning,
+                                      );
+                                    })
+                                : VadenButtonExtension.outlined(
+                                    title: title,
+                                    onPressed: () {},
+                                    icon: null,
+                                    width: width,
+                                    borderColor: VadenColors.stkWhite,
+                                  ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 320),
                       Center(

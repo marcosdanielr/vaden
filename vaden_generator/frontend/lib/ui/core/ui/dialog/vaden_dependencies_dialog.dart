@@ -185,8 +185,6 @@ class _VadenDependenciesDialogState extends State<VadenDependenciesDialog> {
       return;
     }
 
-    viewModel.fetchDependenciesCommand.execute();
-
     // Inicializar dependências já selecionadas
     setState(() {
       _selectedDependencies = List.from(viewModel.projectDependencies);
