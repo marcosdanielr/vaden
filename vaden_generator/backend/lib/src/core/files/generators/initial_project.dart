@@ -78,11 +78,11 @@ environment:
   sdk: ^{{dartVersion}}
 
 dependencies:
-  vaden: ^0.0.5
+  vaden: {{vaden}}
 
 dev_dependencies:
-  build_runner: ^2.4.14
-  vaden_class_scanner: ^0.0.4
+  build_runner: {{build_runner}}
+  vaden_class_scanner: {{vaden_class_scanner}}
 ''';
 
 const _readmeContent = '''# {{name}}
@@ -107,7 +107,6 @@ const _applicationContent = '''openapi:
 server:
   port: 8080
   host: localhost
-  mode: debug
 
 storage:
   provider: local  # opções: local, s3, firebase
@@ -121,6 +120,9 @@ storage:
   firebase:
     projectId: 'my-project'
     apiKey: 'my_api'
+
+env:
+  mode: debug
 
 ''';
 

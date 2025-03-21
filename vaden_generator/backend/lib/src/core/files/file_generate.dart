@@ -9,8 +9,6 @@ abstract class FileGenerator {
     Map<String, dynamic> variables = const {},
   });
 
-  /// parse variables in content
-  /// Variables is {{variable}} or {{ variable }}
   String parseVariables(String content, Map<String, dynamic> variables) {
     final regExp = RegExp(r'{{\s*([a-zA-Z0-9_]+)\s*}}');
     return content.replaceAllMapped(regExp, (match) {

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:backend/src/core/files/file_manager.dart';
@@ -22,6 +23,7 @@ class GenerateServiceImpl implements GenerateService {
     final tempProject = await fileManager.createTempDir(tempFolder, project.projectName);
 
     await fileManager.getGenerator('initial_project').generate(fileManager, tempProject, variables: {
+      ...getPackageVersions(),
       'name': project.projectName,
       'description': project.projectDescription,
       'dartVersion': project.dartVersion,
@@ -34,11 +36,14 @@ class GenerateServiceImpl implements GenerateService {
   AsyncResult<ProjectWithTempPath> addDependencies(ProjectWithTempPath project) async {
     final tempDir = Directory(project.path);
 
+    final versions = getPackageVersions();
+
     for (var dependency in project.dependencies) {
       await fileManager.getGenerator(dependency.key).generate(
         fileManager,
         tempDir,
         variables: {
+          ...versions,
           'name': project.projectName,
           'description': project.projectDescription,
           'dartVersion': project.dartVersion,
@@ -47,6 +52,13 @@ class GenerateServiceImpl implements GenerateService {
     }
 
     return Success(project);
+  }
+
+  Map<String, dynamic> getPackageVersions() {
+    final packageVersion = File('assets/package_version.json');
+    final packageVersionContent = packageVersion.readAsStringSync();
+    final packageVersionMap = jsonDecode(packageVersionContent) as Map<String, dynamic>;
+    return packageVersionMap;
   }
 
   @override
