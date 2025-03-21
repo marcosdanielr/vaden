@@ -45,7 +45,7 @@ class RemoteGenerateRepository implements GenerateRepository {
       final String fileName = onSuccess.data['url'];
       final String projectName = onSuccess.request.data['projectName'];
 
-      return Success('$baseUrl$path$fileName?name=$projectName');
+      return Success('$baseUrl$path$fileName?name=$projectName.zip');
     } catch (e) {
       return Failure(
         Exception(e.toString()),
@@ -58,7 +58,7 @@ class RemoteGenerateRepository implements GenerateRepository {
       final List<Dependency> dependencies = (response.data as List)
           .map((dependencyMap) => Dependency.fromMap(dependencyMap))
           .toList();
-          
+
       return Success(dependencies);
     } catch (e) {
       return Failure(

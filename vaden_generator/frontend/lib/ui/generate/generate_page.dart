@@ -4,9 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:localization/localization.dart';
 
 import '../../config/dependencies.dart';
+import '../../domain/entities/project.dart';
+import '../../domain/validators/project_validator.dart';
 import '../core/ui/ui.dart';
 import '../widgets/internation/internation_widget.dart';
 import 'viewmodels/generate_viewmodel.dart';
+import 'widgets/vaden_dependencies_dialog.dart';
 
 class GeneratePage extends StatefulWidget {
   const GeneratePage({super.key});
@@ -16,36 +19,37 @@ class GeneratePage extends StatefulWidget {
 }
 
 class _GeneratePageState extends State<GeneratePage> {
-  // AppBar Title
   final double fontSize = 24.0;
   late final double lineHeight = 24.0 / fontSize;
   late final double letterSpacing = fontSize * 0.04;
 
-  // Generate
   final viewModel = injector.get<GenerateViewmodel>();
 
-  final _projectNameEC = TextEditingController();
-  final _projectDescriptionEC = TextEditingController();
-  String? _projectNameError;
+  final project = Project();
+
+  final projectValidator = ProjectValidator();
 
   @override
   void initState() {
     super.initState();
     viewModel.fetchDependenciesCommand.execute();
-  }
-
-  @override
-  void dispose() {
-    _projectNameEC.dispose();
-    _projectDescriptionEC.dispose();
-    super.dispose();
+    project.setDartVersion(viewModel.latestDartVersion);
   }
 
   Future<void> _openDependenciesDialog() async {
-    final result = await VadenDependenciesDialog.show(context, viewModel);
+    final notSelectedDependencies = [...viewModel.dependencies].where((e) {
+      return !project.dependencies.contains(e);
+    }).toList();
+
+    final result = await VadenDependenciesDialog.show(
+      context,
+      notSelectedDependencies,
+    );
 
     if (result != null) {
-      setState(() {});
+      setState(() {
+        project.dependencies.add(result);
+      });
     }
   }
 
@@ -150,25 +154,20 @@ class _GeneratePageState extends State<GeneratePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           VadenTextInput(
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
                             label: 'Project_name'.i18n(),
                             hint: 'Vaden_Backend'.i18n(),
-                            controller: _projectNameEC,
-                            onChanged: (value) {
-                              final validation = viewModel.validateProjectName(value);
-                              setState(() {
-                                _projectNameError = validation;
-                              });
-                              viewModel.setNameProjectCommand.execute(value);
-                            },
+                            onChanged: project.setName,
+                            validator: projectValidator.byField(project, 'name'),
                             verticalPadding: 20,
-                            errorText: _projectNameError,
                           ),
                           const SizedBox(height: 32),
                           VadenTextInput(
+                            autovalidateMode: AutovalidateMode.onUserInteraction,
                             label: 'Description'.i18n(),
                             hint: 'Vaden_Project'.i18n(),
-                            controller: _projectDescriptionEC,
-                            onChanged: viewModel.setDescriptionProjectCommand.execute,
+                            onChanged: project.setDescription,
+                            validator: projectValidator.byField(project, 'description'),
                             verticalPadding: 20,
                           ),
                           const SizedBox(height: 32),
@@ -177,11 +176,8 @@ class _GeneratePageState extends State<GeneratePage> {
                             child: VadenDropdown(
                               options: viewModel.dartVersions,
                               title: 'Dart_version'.i18n(),
-                              selectedOption: 'Dart_version'.i18n(),
-                              title: 'Versão Dart',
                               selectedOption: viewModel.latestDartVersion,
-
-                              onOptionSelected: viewModel.setDartVersionProjectCommand.execute,
+                              onOptionSelected: project.setDartVersion,
                               width: double.infinity,
                               fontSize: 16.0,
                             ),
@@ -234,24 +230,22 @@ class _GeneratePageState extends State<GeneratePage> {
                                 padding: const EdgeInsets.only(top: 0),
                                 child: SizedBox(
                                   width: 440,
-                                  height: viewModel.projectDependencies.isEmpty ? 56 : null,
-                                  child: viewModel.projectDependencies.isEmpty
+                                  height: project.dependencies.isEmpty ? 56 : null,
+                                  child: project.dependencies.isEmpty
                                       ? VadenTextInput(
-
                                           label: 'Add_dependencies'.i18n(),
-
                                           hint: '',
-                                          verticalPadding: viewModel.projectDependencies.isEmpty //
+                                          verticalPadding: project.dependencies.isEmpty //
                                               ? 20
                                               : 12,
                                           isEnabled: false,
                                         )
                                       : VadenDependenciesCard(
-                                          dependencies: viewModel.projectDependencies,
+                                          dependencies: project.dependencies,
                                           onRemove: (dependency) {
-                                            viewModel.removeDependencyOnProjectCommand
-                                                .execute(dependency);
-                                            setState(() {});
+                                            setState(() {
+                                              project.dependencies.remove(dependency);
+                                            });
                                           },
                                         ),
                                 ),
@@ -273,24 +267,23 @@ class _GeneratePageState extends State<GeneratePage> {
                       ),
                       const SizedBox(height: 80),
                       ListenableBuilder(
-                        listenable: viewModel,
+                        listenable: Listenable.merge([
+                          viewModel.createProjectCommand,
+                          project,
+                        ]),
                         builder: (context, child) {
                           final String title = 'Generate_project'.i18n();
                           final double width = 320;
 
                           return Center(
-                            child: viewModel.projectIsValid()
-                                ? ListenableBuilder(
-                                    listenable: viewModel.createProjectCommand,
-                                    builder: (context, child) {
-                                      return VadenButtonExtension.primary(
-                                        title: title,
-                                        onPressed: () => viewModel.createProjectCommand.execute(),
-                                        icon: null,
-                                        width: width,
-                                        isLoading: viewModel.createProjectCommand.isRunning,
-                                      );
-                                    },
+                            child: projectValidator.validate(project).isValid
+                                ? VadenButtonExtension.primary(
+                                    title: title,
+                                    onPressed: () =>
+                                        viewModel.createProjectCommand.execute(project),
+                                    icon: null,
+                                    width: width,
+                                    isLoading: viewModel.createProjectCommand.isRunning,
                                   )
                                 : VadenButtonExtension.outlined(
                                     title: title,

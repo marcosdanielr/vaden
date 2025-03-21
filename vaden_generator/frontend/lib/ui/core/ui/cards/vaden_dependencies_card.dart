@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../themes/colors.dart';
+
 import '../../../../domain/entities/dependency.dart';
+import '../../themes/colors.dart';
 
 class VadenDependenciesCard extends StatelessWidget {
   final List<Dependency> dependencies;
@@ -14,26 +15,24 @@ class VadenDependenciesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Se não houver dependências, não exibir nada
-    if (dependencies.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: VadenColors.stkSupport2,
-          width: 1,
-        ),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children:
-            dependencies.map((dependency) => _buildDependencyItem(context, dependency)).toList(),
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (final dependency in dependencies)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: VadenColors.stkSupport2,
+                width: 1,
+              ),
+            ),
+            margin: const EdgeInsets.only(top: 10),
+            child: _buildDependencyItem(context, dependency),
+          ),
+      ],
     );
   }
 

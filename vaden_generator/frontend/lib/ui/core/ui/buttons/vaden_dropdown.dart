@@ -1,6 +1,8 @@
-import 'package:flutter/material.dart';
-import '../../themes/colors.dart';
 import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+
+import '../../themes/colors.dart';
 
 class VadenDropdown extends StatefulWidget {
   final String? title;
@@ -118,6 +120,8 @@ class _VadenDropdownState extends State<VadenDropdown> {
     if (_isDropdownOpen && _overlayEntry != null) {
       _overlayEntry!.markNeedsBuild();
     }
+
+    _toggleDropdown();
   }
 
   Widget _buildSelectionIndicator() {

@@ -1,8 +1,10 @@
 import 'dart:convert';
 
+import 'package:flutter/material.dart';
+
 import 'dependency.dart';
 
-class Project {
+class Project extends ChangeNotifier {
   String name;
   String description;
   String dartVersion;
@@ -19,11 +21,20 @@ class Project {
     return Project._('', '', '', []);
   }
 
-  void setName(String value) => name = value;
+  void setName(String value) {
+    name = value;
+    notifyListeners();
+  }
 
-  void setDescription(String value) => description = value;
+  void setDescription(String value) {
+    description = value;
+    notifyListeners();
+  }
 
-  void setDartVersion(String value) => dartVersion = value;
+  void setDartVersion(String value) {
+    dartVersion = value;
+    notifyListeners();
+  }
 
   void setDependencies(List<Dependency> value) => dependencies = value;
 

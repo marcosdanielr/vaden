@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:localization/localization.dart';
 
 import '../../../config/dependencies.dart';
-import '../../../viewmodels/main_viewmodels.dart';
+import '../../../main_viewmodels.dart';
 import '../../core/ui/buttons/vaden_dropdown.dart';
 
 enum I18n {

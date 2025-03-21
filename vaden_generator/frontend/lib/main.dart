@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:localization/localization.dart';
+
 import 'config/dependencies.dart';
+import 'main_viewmodels.dart';
 import 'ui/core/themes/theme.dart';
 import 'ui/generate/generate_page.dart';
 import 'ui/widgets/internation/internation_widget.dart';
-import 'viewmodels/main_viewmodels.dart';
 
 void main() {
   setupInjection();
@@ -21,10 +22,15 @@ class MainApp extends StatefulWidget {
 
 class _MainAppState extends State<MainApp> {
   final MainViewmodel viewmodel = injector.get<MainViewmodel>();
+  @override
+  void initState() {
+    super.initState();
+
+    LocalJsonLocalization.delegate.directories = ['lib/i18n'];
+  }
 
   @override
   Widget build(BuildContext context) {
-    LocalJsonLocalization.delegate.directories = ['lib/i18n'];
     return ListenableBuilder(
       listenable: viewmodel,
       builder: (context, child) {

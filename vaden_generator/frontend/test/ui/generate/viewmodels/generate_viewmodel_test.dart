@@ -35,25 +35,10 @@ void main() {
     expect(viewmodel.dependencies.isNotEmpty, true);
   });
 
-  test('add end remove project dependencies', () async {
-    viewmodel.setDependencies([DependencyFake()]);
-    final dependency = viewmodel.dependencies;
-
-    expect(viewmodel.projectDependencies.isEmpty, true);
-
-    await viewmodel.addDependencyOnProjectCommand.execute(dependency.first);
-
-    expect(viewmodel.projectDependencies.isNotEmpty, true);
-
-    await viewmodel.removeDependencyOnProjectCommand.execute(dependency.first);
-
-    expect(viewmodel.projectDependencies.isEmpty, true);
-  });
-
   test('create project comnand', () async {
     when(() => generateRepository.createZip(any())).thenAnswer((_) async => Success(unit));
 
-    await viewmodel.createProjectCommand.execute();
+    await viewmodel.createProjectCommand.execute(ProjectFake());
 
     expect(viewmodel.createProjectCommand.isSuccess, true);
   });

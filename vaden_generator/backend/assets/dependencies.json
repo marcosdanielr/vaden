@@ -10,5 +10,11 @@
         "description": "A communication protocol that provides full-duplex communication channels over a single TCP connection.",
         "key": "websocket",
         "tag": "MESSAGING"
+    },
+    {
+        "name": "Dio",
+        "description": "A powerful Http client for Dart, which supports Interceptors, Global configuration, FormData, Request Cancellation, File downloading, Timeout etc.",
+        "key": "Dio",
+        "tag": "HTTP"
     }
 ]
