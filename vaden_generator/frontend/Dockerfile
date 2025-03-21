@@ -1,0 +1,17 @@
+FROM ghcr.io/cirruslabs/flutter:3.29.2 AS build
+
+WORKDIR /app
+
+COPY . .
+RUN flutter pub get
+RUN flutter build web --release --dart-define-from-file .env 
+
+FROM nginx:stable-alpine
+
+RUN rm -rf /usr/share/nginx/html/*
+
+COPY --from=build /app/build/web /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]

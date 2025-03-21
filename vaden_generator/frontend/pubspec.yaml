@@ -6,8 +6,6 @@ version: 1.0.0+1
 environment:
   sdk: ^3.6.0
 
-resolution: workspace
-
 dependencies:
   flutter:
     sdk: flutter
@@ -32,6 +30,8 @@ dependencies:
     sdk: flutter
   localization: ^2.1.1
   lucid_validation: ^1.2.5
+  flutter_web_plugins:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
