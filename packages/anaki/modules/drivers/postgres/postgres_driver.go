@@ -40,5 +40,11 @@ func (p *PostgresDriver) Execute(query string, args ...interface{}) (int64, erro
 }
 
 func (p *PostgresDriver) Close() error {
-	panic("Method not implemented")
+	if p.conn != nil {
+		err := p.conn.Close(context.Background())
+		p.conn = nil
+		return err
+	}
+
+	return nil
 }
