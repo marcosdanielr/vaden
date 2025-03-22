@@ -8,7 +8,7 @@ import (
 )
 
 type SQLiteDriver struct {
-	db *sql.DB
+	conn *sql.DB
 }
 
 var _ interfaces.Database = (*SQLiteDriver)(nil)
