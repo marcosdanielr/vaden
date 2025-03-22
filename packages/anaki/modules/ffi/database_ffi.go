@@ -6,6 +6,7 @@ package ffi
 import "C"
 import (
 	"anaki/modules/drivers/postgres"
+	"anaki/modules/drivers/sqlite"
 	"anaki/shared/drivers/interfaces"
 	"fmt"
 )
@@ -19,13 +20,17 @@ func SetDatabaseType(dbType *C.char) {
 	switch typeStr {
 	case "postgres":
 		db = &postgres.PostgresDriver{}
+
+	case "sqlite":
+		db = &sqlite.SQLiteDriver{}
+
 	default:
 		db = nil
 	}
 }
 
-//export ConnectDB
-func ConnectDB(connectionString *C.char) *C.char {
+//export Connect
+func Connect(connectionString *C.char) *C.char {
 	connStr := C.GoString(connectionString)
 	if db == nil {
 		return C.CString("Database type not set")
@@ -39,16 +44,37 @@ func ConnectDB(connectionString *C.char) *C.char {
 	return C.CString("Connection successful")
 }
 
-//export CloseDB
-func CloseDB() *C.char {
+//export Execute
+func Execute(argsCount C.int, args **C.char) C.int {
+	goArgs := convertCArgsToGoArgs(args, argsCount)
+	if db == nil {
+		return -1
+	}
+
+	query := goArgs[0].(string)
+	queryArgs := goArgs[1:]
+
+	rowsAffected, err := db.Execute(query, queryArgs...)
+	if err != nil {
+		return -1
+	}
+
+	return C.int(rowsAffected)
+}
+
+//export Query
+func Query(argsCount C.int, args **C.char) *C.char {
+	goArgs := convertCArgsToGoArgs(args, argsCount)
 	if db == nil {
 		return C.CString("Database not connected")
 	}
 
-	err := db.Close()
+	query := goArgs[0].(string)
+	queryArgs := goArgs[1:]
+	result, err := db.Query(query, queryArgs...)
 	if err != nil {
-		return C.CString(fmt.Sprintf("Error closing database connection: %v", err))
+		return C.CString(fmt.Sprintf("Error querying database: %v", err))
 	}
 
-	return C.CString("Connection closed successfully")
+	return C.CString(FormatQueryResult(result))
 }
