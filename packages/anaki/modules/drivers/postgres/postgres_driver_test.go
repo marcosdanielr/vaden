@@ -63,7 +63,7 @@ func TestPostgresDriver_Execute(t *testing.T) {
 
 	_, err = driver.Execute("DROP TABLE test_table")
 	if err != nil {
-		t.Fatalf("failed to drop table: %v", err)
+		t.Errorf("failed to drop table: %v", err)
 	}
 
 }
