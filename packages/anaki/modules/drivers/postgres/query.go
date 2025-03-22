@@ -21,10 +21,10 @@ func (p *PostgresDriver) Query(query string, args ...interface{}) ([]map[string]
 	return p.processRow(rows)
 }
 
-func (p *PostgresDriver) QueryRow(query string, args ...interface{}) (interface{}, error) {
-	result := p.conn.QueryRow(context.Background(), query, args...)
-	return result, nil
-}
+// func (p *PostgresDriver) QueryRow(query string, args ...interface{}) (interface{}, error) {
+// 	result := p.conn.QueryRow(context.Background(), query, args...)
+// 	return result, nil
+// }
 
 func (p *PostgresDriver) processRow(rows pgx.Rows) ([]map[string]interface{}, error) {
 	var result []map[string]interface{}
