@@ -1,9 +1,11 @@
 package postgres
 
 import (
-	"anaki/shared/interfaces/contracts"
+	"anaki/shared/drivers/errors"
+	"anaki/shared/drivers/interfaces"
 	"context"
 	"fmt"
+
 	"github.com/jackc/pgx/v5"
 )
 
@@ -11,12 +13,12 @@ type PostgresDriver struct {
 	conn *pgx.Conn
 }
 
-var _ contracts.Database = (*PostgresDriver)(nil)
+var _ interfaces.Database = (*PostgresDriver)(nil)
 
 func (p *PostgresDriver) Connect(connectionString string) error {
 	conn, err := pgx.Connect(context.Background(), connectionString)
 	if err != nil {
-		return fmt.Errorf("unable to connect to database: %v", err)
+		return fmt.Errorf("%w: %v", errors.ErrFailedToConnect, err)
 	}
 
 	p.conn = conn
@@ -28,7 +30,13 @@ func (p *PostgresDriver) Query(query string, args ...interface{}) (interface{}, 
 }
 
 func (p *PostgresDriver) Execute(query string, args ...interface{}) (int64, error) {
-	panic("Method implemented")
+	result, err := p.conn.Exec(context.Background(), query, args...)
+
+	if err != nil {
+		return 0, fmt.Errorf("failed to execute query: %v", err)
+	}
+
+	return result.RowsAffected(), nil
 }
 
 func (p *PostgresDriver) Close() error {

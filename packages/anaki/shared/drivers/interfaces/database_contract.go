@@ -1,4 +1,4 @@
-package contracts
+package interfaces
 
 type Database interface {
 	Connect(connectionString string) error

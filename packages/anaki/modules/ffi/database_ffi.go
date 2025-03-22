@@ -6,11 +6,11 @@ package ffi
 import "C"
 import (
 	"anaki/modules/drivers/postgres"
-	"anaki/shared/interfaces/contracts"
+	"anaki/shared/drivers/interfaces"
 	"fmt"
 )
 
-var db contracts.Database
+var db interfaces.Database
 
 //export SetDatabaseType
 func SetDatabaseType(dbType *C.char) {
