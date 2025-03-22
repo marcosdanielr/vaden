@@ -1,28 +1,29 @@
 package ffi
 
 import (
+	"anaki/modules/ffi"
 	"testing"
 )
 
 func TestDatabaseWrapper(t *testing.T) {
-	db = nil
+	ffi.DB = nil
 
-	TestSetDatabaseType("postgres")
-	if db == nil {
+	ffi.SetupDatabaseType("postgres")
+	if ffi.DB == nil {
 		t.Error("Expected db to be set to PostgreSQL, but got nil")
 	}
 
-	db = nil
+	ffi.DB = nil
 
-	TestSetDatabaseType("sqlite")
-	if db == nil {
+	ffi.SetupDatabaseType("sqlite")
+	if ffi.DB == nil {
 		t.Error("Expected db to be set to SQLite, but got nil")
 	}
 
-	db = nil
+	ffi.DB = nil
 
-	TestSetDatabaseType("invalid")
-	if db != nil {
+	ffi.SetupDatabaseType("invalid")
+	if ffi.DB != nil {
 		t.Error("Expected db to be nil for invalid type")
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"fmt"
 )
 
-var db interfaces.Database
+var DB interfaces.Database
 
 //export SetDatabaseType
 func SetDatabaseType(dbType *C.char) {
@@ -20,22 +20,22 @@ func SetDatabaseType(dbType *C.char) {
 
 	switch typeStr {
 	case "postgres":
-		db = &postgres.PostgresDriver{}
+		DB = &postgres.PostgresDriver{}
 	case "sqlite":
-		db = &sqlite.SQLiteDriver{}
+		DB = &sqlite.SQLiteDriver{}
 	default:
-		db = nil
+		DB = nil
 	}
 }
 
 //export Connect
 func Connect(connectionString *C.char) *C.char {
 	connStr := C.GoString(connectionString)
-	if db == nil {
+	if DB == nil {
 		return C.CString("Database type not set")
 	}
 
-	err := db.Connect(connStr)
+	err := DB.Connect(connStr)
 	if err != nil {
 		return C.CString(fmt.Sprintf("Error connecting to database: %v", err))
 	}
@@ -46,14 +46,14 @@ func Connect(connectionString *C.char) *C.char {
 //export Execute
 func Execute(args **C.char) C.int {
 	goArgs := convertCArgsToGoArgs(args)
-	if db == nil {
+	if DB == nil {
 		return -1
 	}
 
 	query := goArgs[0]
 	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
 
-	rowsAffected, err := db.Execute(query, queryArgs...)
+	rowsAffected, err := DB.Execute(query, queryArgs...)
 	if err != nil {
 		return -1
 	}
@@ -64,13 +64,13 @@ func Execute(args **C.char) C.int {
 //export Query
 func Query(args **C.char) *C.char {
 	goArgs := convertCArgsToGoArgs(args)
-	if db == nil {
+	if DB == nil {
 		return C.CString("Database not connected")
 	}
 
 	query := goArgs[0]
 	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
-	result, err := db.Query(query, queryArgs...)
+	result, err := DB.Query(query, queryArgs...)
 	if err != nil {
 		return C.CString(fmt.Sprintf("Error querying database: %v", err))
 	}
@@ -81,13 +81,13 @@ func Query(args **C.char) *C.char {
 //export Close
 func Close(args **C.char) *C.char {
 	goArgs := convertCArgsToGoArgs(args)
-	if db == nil {
+	if DB == nil {
 		return C.CString("Database not connected")
 	}
 
 	query := goArgs[0]
 	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
-	result, err := db.Query(query, queryArgs...)
+	result, err := DB.Query(query, queryArgs...)
 	if err != nil {
 		return C.CString(fmt.Sprintf("Error querying database: %v", err))
 	}
