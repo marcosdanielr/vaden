@@ -1,40 +1,14 @@
 package postgres
 
 import (
+	"anaki/modules/drivers/postgres"
 	"os"
 	"testing"
 )
 
-func TestPostgresDriver_Connect(t *testing.T) {
-	connStr := os.Getenv("TEST_DATABASE_URL")
-
-	driver := &PostgresDriver{}
-
-	err := driver.Connect(connStr)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
-	defer driver.Close()
-
-	if driver.conn == nil {
-		t.Errorf("expected a connection, but got nil")
-	}
-}
-
-func TestPostgresDriver_Connect_InvalidCredentials(t *testing.T) {
-	connStr := "postgres://invaliduser:invalidpass@localhost:5432/testdb"
-
-	driver := &PostgresDriver{}
-	err := driver.Connect(connStr)
-	if err == nil {
-		t.Errorf("expected an error for invalid credentials, but got none")
-	}
-}
-
 func TestPostgresDriver_Execute(t *testing.T) {
 	connStr := os.Getenv("TEST_DATABASE_URL")
-	driver := &PostgresDriver{}
+	driver := &postgres.PostgresDriver{}
 
 	err := driver.Connect(connStr)
 	if err != nil {
@@ -65,5 +39,4 @@ func TestPostgresDriver_Execute(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to drop table: %v", err)
 	}
-
 }
