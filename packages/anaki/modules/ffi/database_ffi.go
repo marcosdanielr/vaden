@@ -8,6 +8,7 @@ import (
 	"anaki/modules/drivers/postgres"
 	"anaki/modules/drivers/sqlite"
 	"anaki/shared/drivers/interfaces"
+	"anaki/shared/helpers"
 	"fmt"
 )
 
@@ -20,10 +21,8 @@ func SetDatabaseType(dbType *C.char) {
 	switch typeStr {
 	case "postgres":
 		db = &postgres.PostgresDriver{}
-
 	case "sqlite":
 		db = &sqlite.SQLiteDriver{}
-
 	default:
 		db = nil
 	}
@@ -45,14 +44,14 @@ func Connect(connectionString *C.char) *C.char {
 }
 
 //export Execute
-func Execute(argsCount C.int, args **C.char) C.int {
-	goArgs := convertCArgsToGoArgs(args, argsCount)
+func Execute(args **C.char) C.int {
+	goArgs := convertCArgsToGoArgs(args)
 	if db == nil {
 		return -1
 	}
 
-	query := goArgs[0].(string)
-	queryArgs := goArgs[1:]
+	query := goArgs[0]
+	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
 
 	rowsAffected, err := db.Execute(query, queryArgs...)
 	if err != nil {
@@ -63,18 +62,35 @@ func Execute(argsCount C.int, args **C.char) C.int {
 }
 
 //export Query
-func Query(argsCount C.int, args **C.char) *C.char {
-	goArgs := convertCArgsToGoArgs(args, argsCount)
+func Query(args **C.char) *C.char {
+	goArgs := convertCArgsToGoArgs(args)
 	if db == nil {
 		return C.CString("Database not connected")
 	}
 
-	query := goArgs[0].(string)
-	queryArgs := goArgs[1:]
+	query := goArgs[0]
+	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
 	result, err := db.Query(query, queryArgs...)
 	if err != nil {
 		return C.CString(fmt.Sprintf("Error querying database: %v", err))
 	}
 
-	return C.CString(FormatQueryResult(result))
+	return C.CString(formatQueryResult(result))
+}
+
+//export Close
+func Close(args **C.char) *C.char {
+	goArgs := convertCArgsToGoArgs(args)
+	if db == nil {
+		return C.CString("Database not connected")
+	}
+
+	query := goArgs[0]
+	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
+	result, err := db.Query(query, queryArgs...)
+	if err != nil {
+		return C.CString(fmt.Sprintf("Error querying database: %v", err))
+	}
+
+	return C.CString(formatQueryResult(result))
 }
