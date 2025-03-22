@@ -17,12 +17,6 @@ func (s *SQLiteDriver) Connect(connectionString string) error {
 		return fmt.Errorf("%w: %v", errors.ErrFailedToConnect, err)
 	}
 
-	err = s.conn.Ping()
-	if err != nil {
-		return fmt.Errorf("erro ao pingar a conexão: %v", err)
-	}
-
-	fmt.Println("Conexão bem-sucedida!")
 	return nil
 }
 
