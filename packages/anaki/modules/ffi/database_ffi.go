@@ -44,16 +44,14 @@ func Connect(connectionString *C.char) *C.char {
 }
 
 //export Execute
-func Execute(args **C.char) C.int {
-	goArgs := convertCArgsToGoArgs(args)
+func Execute(arg *C.char) C.int {
 	if DB == nil {
 		return -1
 	}
 
-	query := goArgs[0]
-	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
+	query := C.GoString(arg)
 
-	rowsAffected, err := DB.Execute(query, queryArgs...)
+	rowsAffected, err := DB.Execute(query)
 	if err != nil {
 		return -1
 	}
@@ -79,18 +77,17 @@ func Query(args **C.char) *C.char {
 }
 
 //export Close
-func Close(args **C.char) *C.char {
-	goArgs := convertCArgsToGoArgs(args)
+func Close() *C.char {
 	if DB == nil {
 		return C.CString("Database not connected")
 	}
 
-	query := goArgs[0]
-	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
-	result, err := DB.Query(query, queryArgs...)
+	err := DB.Close()
 	if err != nil {
-		return C.CString(fmt.Sprintf("Error querying database: %v", err))
+		return C.CString(fmt.Sprintf("Error disconnecting database: %v", err))
 	}
 
-	return C.CString(formatQueryResult(result))
+	DB = nil
+
+	return C.CString("Database disconnected successfully")
 }

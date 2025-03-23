@@ -19,3 +19,17 @@ func SetupDatabaseConnection(connStr string) string {
 	defer C.free(unsafe.Pointer(cConnStr))
 	return C.GoString(Connect(cConnStr))
 }
+
+func SetupDatabaseClose() string {
+	return C.GoString(Close())
+
+}
+
+func SetupDatabaseExecute(sql string) int {
+	cSql := C.CString(sql)
+	defer C.free(unsafe.Pointer(cSql))
+
+	result := Execute(cSql)
+
+	return int(result)
+}

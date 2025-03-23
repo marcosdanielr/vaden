@@ -21,10 +21,12 @@ func formatQueryResult(result []map[string]interface{}) string {
 func convertCArgsToGoArgs(args **C.char) []string {
 	var goArgs []string
 	for i := 0; ; i++ {
-		arg := (*C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(args)) + uintptr(i)*unsafe.Sizeof(args)))
+		arg := (*C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(args)) + uintptr(i)*unsafe.Sizeof(*args)))
+
 		if arg == nil {
 			break
 		}
+
 		goArgs = append(goArgs, C.GoString(arg))
 	}
 	return goArgs
