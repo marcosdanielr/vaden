@@ -9,7 +9,6 @@ import (
 	"anaki/modules/drivers/sqlite"
 	"anaki/shared/drivers/interfaces"
 	"fmt"
-	"unsafe"
 )
 
 var DB interfaces.Database
@@ -51,37 +50,18 @@ func Execute(query *C.char, args **C.char, numArgs C.int) C.int {
 
 	sql := C.GoString(query)
 
-	var arguments []interface{}
+	var arguments = convertCArgsToGo(args, numArgs)
 
-	if numArgs > 0 && args != nil {
-		for i := 0; i < int(numArgs); i++ {
-			argPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(args)) + uintptr(i)*unsafe.Sizeof(*args)))
-
-			if argPtr == nil || *argPtr == nil {
-				continue
-			}
-
-			arg := C.GoString(*argPtr)
-
-			arguments = append(arguments, arg)
-
-		}
+	if len(arguments) == 0 {
+		arguments = nil
 	}
 
-	// Execute a query
-	if len(arguments) > 0 {
-		rowsAffected, err := DB.Execute(sql, arguments...)
-		if err != nil {
-			return -1
-		}
-		return C.int(rowsAffected)
-	} else {
-		rowsAffected, err := DB.Execute(sql)
-		if err != nil {
-			return -1
-		}
-		return C.int(rowsAffected)
+	rowsAffected, err := DB.Execute(sql, arguments...)
+	if err != nil {
+		return -1
 	}
+
+	return C.int(rowsAffected)
 }
 
 //export Query
