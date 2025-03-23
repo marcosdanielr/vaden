@@ -13,7 +13,7 @@ func TestPostgresFFIDatabaseConnection(t *testing.T) {
 	result := ffi.SetupDatabaseConnection(connStr)
 
 	if result != "Connection successful" {
-		t.Errorf("Falha ao conectar ao banco de dados: %s", result)
+		t.Errorf("Database connection failed. Expected 'Connection successful', got: %s", result)
 	}
 }
 
@@ -24,6 +24,6 @@ func TestPostgresFFIDatabaseConnectionFailed(t *testing.T) {
 	result := ffi.SetupDatabaseConnection(connStr)
 
 	if result == "Connection successful" {
-		t.Errorf("Falha ao conectar ao banco de dados: %s", result)
+		t.Errorf("Expected database connection to fail, but it succeeded. Result: %s", result)
 	}
 }
