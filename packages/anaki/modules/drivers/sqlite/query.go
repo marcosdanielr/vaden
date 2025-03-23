@@ -19,6 +19,10 @@ func (s *SQLiteDriver) Query(query string, args ...interface{}) ([]map[string]in
 	return s.processRow(rows)
 }
 
+func (s *SQLiteDriver) QueryRow(query string, args ...interface{}) (map[string]interface{}, error) {
+	return nil, fmt.Errorf("method not implemented")
+}
+
 func (s *SQLiteDriver) processRow(rows *sql.Rows) ([]map[string]interface{}, error) {
 	var result []map[string]interface{}
 	columns, err := rows.Columns()
