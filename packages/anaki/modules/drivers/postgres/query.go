@@ -21,10 +21,16 @@ func (p *PostgresDriver) Query(query string, args ...interface{}) ([]map[string]
 	return p.processRow(rows)
 }
 
-// func (p *PostgresDriver) QueryRow(query string, args ...interface{}) (interface{}, error) {
-// 	result := p.conn.QueryRow(context.Background(), query, args...)
-// 	return result, nil
-// }
+func (p *PostgresDriver) QueryRow(query string, args ...interface{}) (map[string]interface{}, error) {
+	row := p.conn.QueryRow(context.Background(), query, args...)
+
+	columns, err := p.getQueryColumnNames(query, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	return p.scanRow(row, columns)
+}
 
 func (p *PostgresDriver) processRow(rows pgx.Rows) ([]map[string]interface{}, error) {
 	var result []map[string]interface{}
@@ -55,4 +61,48 @@ func (p *PostgresDriver) processRow(rows pgx.Rows) ([]map[string]interface{}, er
 	}
 
 	return result, nil
+}
+
+func (p *PostgresDriver) getQueryColumnNames(query string, args ...interface{}) ([]string, error) {
+	rows, err := p.conn.Query(context.Background(), query, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Extrai apenas os nomes das colunas
+	var columnNames []string
+	for _, field := range rows.FieldDescriptions() {
+		columnNames = append(columnNames, string(field.Name))
+	}
+
+	return columnNames, nil
+}
+
+func (p *PostgresDriver) scanRow(row pgx.Row, columnNames []string) (map[string]interface{}, error) {
+	values := make([]interface{}, len(columnNames))
+	valuePtrs := make([]interface{}, len(columnNames))
+
+	for i := range values {
+		valuePtrs[i] = &values[i]
+	}
+
+	if err := row.Scan(valuePtrs...); err != nil {
+		if err == pgx.ErrNoRows {
+			return nil, fmt.Errorf("no rows returned")
+		}
+		return nil, fmt.Errorf("failed to scan row: %v", err)
+	}
+
+	return p.mapRowValues(columnNames, values), nil
+}
+
+func (p *PostgresDriver) mapRowValues(columnNames []string, values []interface{}) map[string]interface{} {
+	rowData := make(map[string]interface{})
+
+	for i, col := range columnNames {
+		rowData[col] = values[i]
+	}
+
+	return rowData
 }
