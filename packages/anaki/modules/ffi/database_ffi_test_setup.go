@@ -33,22 +33,40 @@ func SetupDatabaseExecute(sql string, args []string) int {
 		return int(Execute(cSql, nil, 0))
 	}
 
-	cArgs := make([]*C.char, len(args))
-	for i, arg := range args {
-		cArgs[i] = C.CString(arg)
-		defer C.free(unsafe.Pointer(cArgs[i]))
-	}
+	cArgs, freeArgs := convertArgsToCStringArray(args)
+	defer freeArgs()
 
-	result := Execute(cSql, (**C.char)(unsafe.Pointer(&cArgs[0])), C.int(len(args)))
+	result := Execute(cSql, cArgs, C.int(len(args)))
 
 	return int(result)
 }
 
-func SetupDatabaseQuery(sql string) string {
+func SetupDatabaseQuery(sql string, args []string) string {
 	cSql := C.CString(sql)
 	defer C.free(unsafe.Pointer(cSql))
 
-	result := Query(cSql)
+	if len(args) == 0 {
+		result := Query(cSql, nil, 0)
+		return C.GoString(result)
+	}
+
+	cArgs, freeArgs := convertArgsToCStringArray(args)
+	defer freeArgs()
+
+	result := Query(cSql, cArgs, C.int(len(args)))
 
 	return C.GoString(result)
+}
+
+func convertArgsToCStringArray(args []string) (**C.char, func()) {
+	cArgs := make([]*C.char, len(args))
+	for i, arg := range args {
+		cArgs[i] = C.CString(arg)
+	}
+
+	return (**C.char)(unsafe.Pointer(&cArgs[0])), func() {
+		for _, cArg := range cArgs {
+			C.free(unsafe.Pointer(cArg))
+		}
+	}
 }

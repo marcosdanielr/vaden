@@ -50,7 +50,7 @@ func Execute(query *C.char, args **C.char, numArgs C.int) C.int {
 
 	sql := C.GoString(query)
 
-	var arguments = convertCArgsToGo(args, numArgs)
+	arguments := convertCArgsToGo(args, numArgs)
 
 	if len(arguments) == 0 {
 		arguments = nil
@@ -65,14 +65,20 @@ func Execute(query *C.char, args **C.char, numArgs C.int) C.int {
 }
 
 //export Query
-func Query(arg *C.char) *C.char {
+func Query(query *C.char, args **C.char, numArgs C.int) *C.char {
 	if DB == nil {
 		return C.CString("Database not connected")
 	}
 
-	query := C.GoString(arg)
+	sql := C.GoString(query)
 
-	result, err := DB.Query(query)
+	arguments := convertCArgsToGo(args, numArgs)
+
+	if len(arguments) == 0 {
+		arguments = nil
+	}
+
+	result, err := DB.Query(sql, arguments...)
 	if err != nil {
 		return C.CString(fmt.Sprintf("Error querying database: %v", err))
 	}
