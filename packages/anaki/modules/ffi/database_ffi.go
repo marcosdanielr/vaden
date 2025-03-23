@@ -9,6 +9,7 @@ import (
 	"anaki/modules/drivers/sqlite"
 	"anaki/shared/drivers/interfaces"
 	"fmt"
+	"unsafe"
 )
 
 var DB interfaces.Database
@@ -43,19 +44,51 @@ func Connect(connectionString *C.char) *C.char {
 }
 
 //export Execute
-func Execute(arg *C.char) C.int {
+func Execute(query *C.char, args **C.char, numArgs C.int) C.int {
 	if DB == nil {
 		return -1
 	}
 
-	query := C.GoString(arg)
+	sql := C.GoString(query)
 
-	rowsAffected, err := DB.Execute(query)
-	if err != nil {
-		return -1
+	var arguments []interface{}
+
+	if numArgs > 0 && args != nil {
+		for i := 0; i < int(numArgs); i++ {
+			argPtr := (**C.char)(unsafe.Pointer(uintptr(unsafe.Pointer(args)) + uintptr(i)*unsafe.Sizeof(*args)))
+
+			if argPtr == nil || *argPtr == nil {
+				continue
+			}
+
+			arg := C.GoString(*argPtr)
+
+			arguments = append(arguments, arg)
+
+			fmt.Printf("Argument %d: %s\n", i, arg)
+		}
 	}
 
-	return C.int(rowsAffected)
+	// Execute a query
+	if len(arguments) > 0 {
+		fmt.Printf("Executing SQL with %d args: %s, %v\n", len(arguments), sql, arguments)
+		rowsAffected, err := DB.Execute(sql, arguments...)
+		if err != nil {
+			fmt.Printf("SQL Error: %v\n", err)
+			return -1
+		}
+		fmt.Printf("Rows affected: %d\n", rowsAffected)
+		return C.int(rowsAffected)
+	} else {
+		fmt.Printf("Executing SQL without args: %s\n", sql)
+		rowsAffected, err := DB.Execute(sql)
+		if err != nil {
+			fmt.Printf("SQL Error: %v\n", err)
+			return -1
+		}
+		fmt.Printf("Rows affected: %d\n", rowsAffected)
+		return C.int(rowsAffected)
+	}
 }
 
 //export Query

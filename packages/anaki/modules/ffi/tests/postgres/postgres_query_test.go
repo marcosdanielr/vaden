@@ -3,7 +3,6 @@ package postgres_ffi_test
 import (
 	"anaki/modules/ffi"
 	"anaki/shared/utils"
-	"fmt"
 	"os"
 	"testing"
 )
@@ -20,7 +19,7 @@ func TestPostgresFFIDatabaseQuery(t *testing.T) {
 
 	defer ffi.SetupDatabaseClose()
 
-	rowsAffected := ffi.SetupDatabaseExecute("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))")
+	rowsAffected := ffi.SetupDatabaseExecute("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))", nil)
 	if rowsAffected == -1 {
 		t.Errorf("failed to create table")
 	}
@@ -38,7 +37,7 @@ func TestPostgresFFIDatabaseQuery(t *testing.T) {
 		t.Errorf("failed to select test_table")
 	}
 
-	rowsAffected = ffi.SetupDatabaseExecute("DROP TABLE test_table")
+	rowsAffected = ffi.SetupDatabaseExecute("DROP TABLE test_table", nil)
 	if rowsAffected == -1 {
 		t.Errorf("failed to drop table")
 
@@ -46,7 +45,7 @@ func TestPostgresFFIDatabaseQuery(t *testing.T) {
 }
 
 func insertTestData(t *testing.T, name string) {
-	rowsAffected := ffi.SetupDatabaseExecute(fmt.Sprintf("INSERT INTO test_table (name) VALUES ('%s')", name))
+	rowsAffected := ffi.SetupDatabaseExecute("INSERT INTO test_table (name) VALUES ($1)", []string{name})
 	if rowsAffected != 1 {
 		t.Errorf("failed to insert into test_table with name: %s", name)
 	}

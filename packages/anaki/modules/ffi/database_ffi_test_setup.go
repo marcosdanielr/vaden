@@ -25,11 +25,21 @@ func SetupDatabaseClose() string {
 
 }
 
-func SetupDatabaseExecute(sql string) int {
+func SetupDatabaseExecute(sql string, args []string) int {
 	cSql := C.CString(sql)
 	defer C.free(unsafe.Pointer(cSql))
 
-	result := Execute(cSql)
+	if len(args) == 0 {
+		return int(Execute(cSql, nil, 0))
+	}
+
+	cArgs := make([]*C.char, len(args))
+	for i, arg := range args {
+		cArgs[i] = C.CString(arg)
+		defer C.free(unsafe.Pointer(cArgs[i]))
+	}
+
+	result := Execute(cSql, (**C.char)(unsafe.Pointer(&cArgs[0])), C.int(len(args)))
 
 	return int(result)
 }

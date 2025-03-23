@@ -18,23 +18,23 @@ func TestPostgresFFIDatabaseExecute(t *testing.T) {
 
 	defer ffi.SetupDatabaseClose()
 
-	rowsAffected := ffi.SetupDatabaseExecute("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))")
+	rowsAffected := ffi.SetupDatabaseExecute("CREATE TABLE IF NOT EXISTS test_table (id SERIAL PRIMARY KEY, name VARCHAR(255))", nil)
 	if rowsAffected == -1 {
 		t.Errorf("failed to create table")
 	}
 
-	rowsAffected = ffi.SetupDatabaseExecute("INSERT INTO test_table (name) VALUES ('test')")
+	rowsAffected = ffi.SetupDatabaseExecute("INSERT INTO test_table (name) VALUES ('test')", nil)
 	if rowsAffected != 1 {
 		t.Errorf("failed to insert test_table")
 	}
 
-	rowsAffected = ffi.SetupDatabaseExecute("UPDATE test_table SET name = 'updated_test' WHERE name = 'test'")
+	rowsAffected = ffi.SetupDatabaseExecute("UPDATE test_table SET name = 'updated_test' WHERE name = $1", []string{"test"})
 	if rowsAffected != 1 {
 		t.Errorf("failed to update data")
 		t.Errorf("expected 1 row affected, got %d", rowsAffected)
 	}
 
-	rowsAffected = ffi.SetupDatabaseExecute("DROP TABLE test_table")
+	rowsAffected = ffi.SetupDatabaseExecute("DROP TABLE test_table", nil)
 	if rowsAffected == -1 {
 		t.Errorf("failed to drop table")
 
