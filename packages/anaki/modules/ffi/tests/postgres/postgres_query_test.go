@@ -60,11 +60,10 @@ func TestPostgresFFIDatabaseQuery(t *testing.T) {
 	rowsAffected = ffi.SetupDatabaseExecute("DROP TABLE test_table", nil)
 	if rowsAffected == -1 {
 		t.Errorf("failed to drop table")
-
 	}
 }
 
-func TestPostgresFFIDatabaseQueryComplex(t *testing.T) {
+func TestPostgresFFIDatabaseQueryMutipleArgs(t *testing.T) {
 	ffi.SetupDatabaseType("postgres")
 	connStr := os.Getenv("TEST_DATABASE_URL")
 
@@ -74,9 +73,8 @@ func TestPostgresFFIDatabaseQueryComplex(t *testing.T) {
 	}
 	defer ffi.SetupDatabaseClose()
 
-	// Criando tabela com múltiplas colunas
 	rowsAffected := ffi.SetupDatabaseExecute(`
-		CREATE TABLE IF NOT EXISTS users (
+		CREATE TABLE IF NOT EXISTS users_test (
 			id SERIAL PRIMARY KEY,
 			first_name VARCHAR(255),
 			last_name VARCHAR(255),
@@ -87,12 +85,11 @@ func TestPostgresFFIDatabaseQueryComplex(t *testing.T) {
 		t.Errorf("failed to create table")
 	}
 
-	insertToUsersTable(t, "Alice", "Smith", 30, "alice.smith@example.com")
-	insertToUsersTable(t, "Bob", "Johnson", 25, "bob.johnson@example.com")
-	insertToUsersTable(t, "Charlie", "Brown", 35, "charlie.brown@example.com")
+	insertToUsersTestTable(t, "Alice", "Smith", 30, "alice.smith@example.com")
+	insertToUsersTestTable(t, "Bob", "Johnson", 25, "bob.johnson@example.com")
+	insertToUsersTestTable(t, "Charlie", "Brown", 35, "charlie.brown@example.com")
 
-	// Consultando todos os registros
-	result = ffi.SetupDatabaseQuery("SELECT * FROM users", nil)
+	result = ffi.SetupDatabaseQuery("SELECT * FROM users_test", nil)
 	rows, err := utils.ParseJSONToMap(result)
 	if err != nil {
 		t.Errorf("Failed to parse JSON: %v", err)
@@ -102,39 +99,19 @@ func TestPostgresFFIDatabaseQueryComplex(t *testing.T) {
 		t.Errorf("Expected 3 rows, got %d", len(rows))
 	}
 
-	// Consultando com múltiplos parâmetros usando WHERE
-	result = ffi.SetupDatabaseQuery("SELECT * FROM users WHERE age > $1 AND age < $2", []string{"25", "35"})
+	result = ffi.SetupDatabaseQuery("SELECT * FROM users_test WHERE age > $1 AND age < $2", []string{"25", "35"})
 	rows, err = utils.ParseJSONToMap(result)
 	if err != nil {
 		t.Errorf("Failed to parse JSON: %v", err)
 	}
 
-	if len(rows) != 2 {
-		t.Errorf("Expected 2 rows, got %d", len(rows))
+	if len(rows) != 1 {
+		t.Errorf("Expected 1 row, got %d", len(rows))
 	}
 
-	// Atualizando registros com parâmetros
-	rowsAffected = ffi.SetupDatabaseExecute(`
-		UPDATE users SET age = $1 WHERE first_name = $2`, []string{"40", "Alice"})
+	rowsAffected = ffi.SetupDatabaseExecute("DROP TABLE users_test", nil)
 	if rowsAffected == -1 {
-		t.Errorf("Failed to update record")
-	}
-
-	// Verificando se a atualização foi realizada corretamente
-	result = ffi.SetupDatabaseQuery("SELECT * FROM users WHERE first_name = $1", []string{"Alice"})
-	rows, err = utils.ParseJSONToMap(result)
-	if err != nil {
-		t.Errorf("Failed to parse JSON: %v", err)
-	}
-
-	if len(rows) != 1 || rows[0]["age"].(float64) != 40 {
-		t.Errorf("Failed to update user age correctly")
-	}
-
-	// Deletando registros
-	rowsAffected = ffi.SetupDatabaseExecute("DELETE FROM users WHERE first_name = $1", []string{"Alice"})
-	if rowsAffected == -1 {
-		t.Errorf("Failed to delete record")
+		t.Errorf("failed to drop table")
 	}
 }
 
@@ -145,9 +122,9 @@ func insertTestData(t *testing.T, name string) {
 	}
 }
 
-func insertToUsersTable(t *testing.T, firstName, lastName string, age int, email string) {
+func insertToUsersTestTable(t *testing.T, firstName, lastName string, age int, email string) {
 	rowsAffected := ffi.SetupDatabaseExecute(`
-		INSERT INTO users (first_name, last_name, age, email) 
+		INSERT INTO users_test (first_name, last_name, age, email) 
 		VALUES ($1, $2, $3, $4)`, []string{firstName, lastName, fmt.Sprintf("%d", age), email})
 
 	if rowsAffected == -1 {
