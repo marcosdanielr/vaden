@@ -26,7 +26,7 @@ func TestPostgresDriver_Execute(t *testing.T) {
 		t.Errorf("failed to insert user: %v", err)
 	}
 
-	rowsAffected, err := driver.Execute("UPDATE test_table SET name = 'updated_test' WHERE name = 'test'")
+	rowsAffected, err := driver.Execute("UPDATE test_table SET name = $1 WHERE name = $2", "updated_test", "test")
 	if err != nil {
 		t.Errorf("failed to update data: %v", err)
 	}
