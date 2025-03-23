@@ -26,10 +26,26 @@ func (p *PostgresDriver) QueryRow(query string, args ...interface{}) (map[string
 
 	columns, err := p.getQueryColumnNames(query, args...)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get column names: %w", err)
 	}
 
-	return p.scanRow(row, columns)
+	values := make([]interface{}, len(columns))
+	valuePtrs := make([]interface{}, len(columns))
+	for i := range values {
+		valuePtrs[i] = &values[i]
+	}
+
+	err = row.Scan(valuePtrs...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to scan row: %w", err)
+	}
+
+	rowData := make(map[string]interface{})
+	for i, col := range columns {
+		rowData[col] = values[i]
+	}
+
+	return rowData, nil
 }
 
 func (p *PostgresDriver) processRow(rows pgx.Rows) ([]map[string]interface{}, error) {
@@ -70,39 +86,10 @@ func (p *PostgresDriver) getQueryColumnNames(query string, args ...interface{}) 
 	}
 	defer rows.Close()
 
-	// Extrai apenas os nomes das colunas
 	var columnNames []string
 	for _, field := range rows.FieldDescriptions() {
 		columnNames = append(columnNames, string(field.Name))
 	}
 
 	return columnNames, nil
-}
-
-func (p *PostgresDriver) scanRow(row pgx.Row, columnNames []string) (map[string]interface{}, error) {
-	values := make([]interface{}, len(columnNames))
-	valuePtrs := make([]interface{}, len(columnNames))
-
-	for i := range values {
-		valuePtrs[i] = &values[i]
-	}
-
-	if err := row.Scan(valuePtrs...); err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("no rows returned")
-		}
-		return nil, fmt.Errorf("failed to scan row: %v", err)
-	}
-
-	return p.mapRowValues(columnNames, values), nil
-}
-
-func (p *PostgresDriver) mapRowValues(columnNames []string, values []interface{}) map[string]interface{} {
-	rowData := make(map[string]interface{})
-
-	for i, col := range columnNames {
-		rowData[col] = values[i]
-	}
-
-	return rowData
 }
