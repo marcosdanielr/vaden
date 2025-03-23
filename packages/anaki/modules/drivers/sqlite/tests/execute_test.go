@@ -22,12 +22,12 @@ func TestSQLiteDriver_Execute(t *testing.T) {
 		t.Errorf("failed to create table: %v", err)
 	}
 
-	_, err = driver.Execute("INSERT INTO test_table (name) VALUES ('test')")
+	_, err = driver.Execute("INSERT INTO test_table (name) VALUES (?)", "test")
 	if err != nil {
 		t.Errorf("failed to insert user: %v", err)
 	}
 
-	rowsAffected, err := driver.Execute("UPDATE test_table SET name = 'updated_test' WHERE name = 'test'")
+	rowsAffected, err := driver.Execute("UPDATE test_table SET name = ? WHERE name = ?", "updated_test", "test")
 	if err != nil {
 		t.Errorf("failed to update data: %v", err)
 	}
