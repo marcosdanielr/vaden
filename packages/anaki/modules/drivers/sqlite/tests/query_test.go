@@ -20,18 +20,23 @@ func TestSQLiteDriver_Query(t *testing.T) {
 		t.Errorf("failed to create table: %v", err)
 	}
 
-	_, err = driver.Execute("INSERT INTO test_table (name) VALUES ('test')")
-	if err != nil {
-		t.Errorf("failed to insert user: %v", err)
-	}
+	insertTestTableData(t, driver, "test")
+	insertTestTableData(t, driver, "test2")
 
-	result, err := driver.Query("SELECT * FROM test_table")
+	result, err := driver.Query("SELECT * FROM test_table WHERE name = ?", "test2")
 	if err != nil {
 		t.Errorf("failed to query data: %v", err)
 	}
 
-	if len(result) == 0 {
+	if len(result) != 1 {
 		t.Errorf("no rows returned from query")
 	}
 
+}
+
+func insertTestTableData(t *testing.T, driver sqlite.SQLiteDriver, name string) {
+	_, err := driver.Execute("INSERT INTO test_table (name) VALUES (?)", name)
+	if err != nil {
+		t.Errorf("failed to insert data: %v", err)
+	}
 }
