@@ -8,7 +8,6 @@ import (
 	"anaki/modules/drivers/postgres"
 	"anaki/modules/drivers/sqlite"
 	"anaki/shared/drivers/interfaces"
-	"anaki/shared/helpers"
 	"fmt"
 )
 
@@ -60,15 +59,14 @@ func Execute(arg *C.char) C.int {
 }
 
 //export Query
-func Query(args **C.char) *C.char {
-	goArgs := convertCArgsToGoArgs(args)
+func Query(arg *C.char) *C.char {
 	if DB == nil {
 		return C.CString("Database not connected")
 	}
 
-	query := goArgs[0]
-	queryArgs := helpers.ConvertStringsToInterfaces(goArgs[1:])
-	result, err := DB.Query(query, queryArgs...)
+	query := C.GoString(arg)
+
+	result, err := DB.Query(query)
 	if err != nil {
 		return C.CString(fmt.Sprintf("Error querying database: %v", err))
 	}

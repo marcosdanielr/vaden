@@ -33,3 +33,12 @@ func SetupDatabaseExecute(sql string) int {
 
 	return int(result)
 }
+
+func SetupDatabaseQuery(sql string) string {
+	cSql := C.CString(sql)
+	defer C.free(unsafe.Pointer(cSql))
+
+	result := Query(cSql)
+
+	return C.GoString(result)
+}
