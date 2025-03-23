@@ -6,14 +6,20 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var _ interfaces.Database = (*PostgresDriver)(nil)
 
 func (p *PostgresDriver) Connect(connectionString string) error {
-	conn, err := pgx.Connect(context.Background(), connectionString)
+
+	conn, err := pgxpool.New(context.Background(), connectionString)
 	if err != nil {
+		return fmt.Errorf("%w: %v", errors.ErrFailedToConnect, err)
+	}
+
+	if err := conn.Ping(context.Background()); err != nil {
+		conn.Close()
 		return fmt.Errorf("%w: %v", errors.ErrFailedToConnect, err)
 	}
 
@@ -22,11 +28,8 @@ func (p *PostgresDriver) Connect(connectionString string) error {
 }
 
 func (p *PostgresDriver) Close() error {
-	if p.conn != nil {
-		err := p.conn.Close(context.Background())
-		p.conn = nil
-		return err
-	}
+	p.conn.Close()
+	p.conn = nil
 
 	return nil
 }
