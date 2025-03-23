@@ -35,6 +35,15 @@ func TestPostgresDriver_Query(t *testing.T) {
 		t.Errorf("no rows returned from query")
 	}
 
+	result, err = driver.Query("SELECT * FROM test_table WHERE name = $1", "inexistent")
+	if err != nil {
+		t.Errorf("failed to query data: %v", err)
+	}
+
+	if len(result) != 0 {
+		t.Errorf("no rows returned from query")
+	}
+
 	_, err = driver.Execute("DROP TABLE test_table")
 	if err != nil {
 		t.Errorf("failed to drop table: %v", err)

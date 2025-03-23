@@ -3,6 +3,7 @@ package postgres
 import (
 	"anaki/modules/drivers/postgres"
 	"os"
+	"reflect"
 	"testing"
 )
 
@@ -36,7 +37,7 @@ func TestPostgresDriver_QueryRow(t *testing.T) {
 			t.Errorf("no row returned from query")
 		}
 	} else {
-		t.Errorf("id is not of type int32")
+		t.Errorf("id is not of type int32, it is of type %s", reflect.TypeOf(result["id"]))
 	}
 
 	_, err = driver.Execute("DROP TABLE test_table")
